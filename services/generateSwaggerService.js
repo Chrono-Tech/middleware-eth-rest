@@ -2,8 +2,8 @@ const requireAll = require('require-all'),
   path = require('path'),
   _ = require('lodash'),
   config = require('../config'),
-  transactionModel = require('../../../models/transactionModel'),
-  accountModel = require('../../../models/accountModel'),
+  transactionModel = require('../models/transactionModel'),
+  accountModel = require('../models/accountModel'),
   contract = require('truffle-contract'),
   fs = require('fs');
 
@@ -18,8 +18,6 @@ if (fs.existsSync(contractsPath) && config.smartContracts.events.listen) {
     resolve: Contract => contract(Contract)
   });
 }
-
-
 
 let definition = _.chain(contracts)
   .map(value => //fetch all events

@@ -1,6 +1,6 @@
-const transactionModel = require('../../../models').transactionModel,
-  accountModel = require('../../../models').accountModel,
-  messages = require('../../../factories').messages.genericMessageFactory,
+const transactionModel = require('../models').transactionModel,
+  accountModel = require('../models').accountModel,
+  messages = require('../factories').messages.genericMessageFactory,
   q2mb = require('query-to-mongo-and-back');
 
 /**

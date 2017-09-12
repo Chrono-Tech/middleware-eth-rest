@@ -2,6 +2,7 @@ const config = require('./config'),
   express = require('express'),
   routes = require('./routes'),
   cors = require('cors'),
+  Promise = require('bluebird'),
   mongoose = require('mongoose'),
   bodyParser = require('body-parser');
 
@@ -10,8 +11,9 @@ const config = require('./config'),
  * @description expose an express web server for txs
  * and accounts manipulation
  */
+mongoose.Promise = Promise;
+mongoose.connect(config.mongo.uri, {useMongoClient: true});
 
-mongoose.connect(config.mongo.uri);
 let app = express();
 
 app.use(cors());

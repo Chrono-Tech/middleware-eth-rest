@@ -3,22 +3,26 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "body-parser": "^1.17.2",
+    "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
     "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "express": "^4.15.4",
     "lodash": "^4.17.4",
-    "mongoose": "^4.10.4",
+    "mongoose": "^4.11.11",
     "mongoose-long": "^0.1.1",
     "query-to-mongo-and-back": "git+https://github.com/ega-forever/query-to-mongo-and-back.git#develop",
+    "require-all": "^2.2.0",
     "truffle-contract": "^2.0.5"
   },
   "scripts": {
+    "lint": "node ./node_modules/eslint/bin/eslint.js -c .eslintrc.js --ext .js --fix --ignore-path .eslintignore .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "eslint": "^4.6.1"
+  }
 }
