@@ -9,7 +9,7 @@ const requireAll = require('require-all'),
 
 let contracts = {};
 
-let contractsPath = path.join(__dirname, '../../../node_modules', 'chronobank-smart-contracts/build/contracts');
+let contractsPath = path.join(__dirname, '../node_modules', 'chronobank-smart-contracts/build/contracts');
 
 if (fs.existsSync(contractsPath) && config.smartContracts.events.listen) {
   contracts = requireAll({ //scan dir for all smartContracts, excluding emitters (except ChronoBankPlatformEmitter) and interfaces
