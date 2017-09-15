@@ -9,9 +9,9 @@ const transactionModel = require('../models').transactionModel,
  * @param app - express instance
  */
 
-module.exports = async(router) => {
+module.exports = async (router) => {
 
-  router.get('/', async(req, res) => {
+  router.get('/', async (req, res) => {
     //convert query request to mongo's
     let q = q2mb.fromQuery(req.query);
     //retrieve all records, which satisfy the query
@@ -24,10 +24,10 @@ module.exports = async(router) => {
 
   });
 
-  router.post('/account', async(req, res) => {
+  router.post('/account', async (req, res) => {
     let account = new accountModel(req.body);
     if (account.validateSync())
-      return res.send(messages.fail);
+    {return res.send(messages.fail);}
 
     try {
       await account.save();
@@ -38,7 +38,7 @@ module.exports = async(router) => {
 
   });
 
-  router.get('/accounts', async(req, res) => {
+  router.get('/accounts', async (req, res) => {
     //convert query request to mongo's
     let q = q2mb.fromQuery(req.query);
     //retrieve all records, which satisfy the query
@@ -51,10 +51,10 @@ module.exports = async(router) => {
 
   });
 
-  router.delete('/account', async(req, res) => {
+  router.delete('/account', async (req, res) => {
 
     if (!req.body.address)
-      return res.send(messages.fail);
+    {return res.send(messages.fail);}
 
     try {
       await accountModel.remove({address: req.body.address});
