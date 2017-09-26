@@ -1,7 +1,6 @@
 require('dotenv/config');
 
 const config = require('../config'),
-  helpers = require('./helpers'),
   mongoose = require('mongoose'),
   expect = require('chai').expect,
   _ = require('lodash'),
@@ -27,7 +26,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 describe('core/rest', function () {
 
   before(async () => {
-    mongoose.connect(config.mongo.uri);
+    mongoose.Promise = Promise;
+    mongoose.connect(config.mongo.uri, {useMongoClient: true});
   });
 
   after(() => {
@@ -52,21 +52,30 @@ describe('core/rest', function () {
   });
 
   it('add fake transaction', async () => {
+    let hash = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
 
+    ctx.tx = {
+      payload: `128:${hash}`,
+      hash: hash,
+      blockHash: hash,
+      blockNumber: 297,
+      from: ctx.address,
+      to: ctx.address,
+      value: 100,
+      created: new Date()
+    };
 
-
-    await new transactionModel().save().catch(()=>{});
+      await new transactionModel(ctx.tx).save();
   });
 
   it('validate query language', async () => {
     await Promise.delay(10000);
 
-    let accounts = await Promise.promisify(web3.eth.getAccounts)();
     let data = await Promise.all(
       [
-        `hash=${ctx.hash}`,
-        `hash!=${ctx.hash}`,
-        `to=${accounts[1]}`,
+        `hash=${ctx.tx.hash}`,
+        `hash!=${ctx.tx.hash}`,
+        `to=${ctx.address}`,
         `created>${moment().add(-30, 'minutes').toISOString()}`
       ].map((query) =>
         new Promise((res, rej) =>
@@ -77,9 +86,9 @@ describe('core/rest', function () {
       )
     );
 
-    expect(data[0][0]).to.include({'hash': ctx.hash});
-    expect(data[1][0]).to.not.include({'hash': ctx.hash});
-    expect(data[2][0]).to.include({'to': accounts[1]});
+    expect(data[0][0]).to.include({'hash': ctx.tx.hash});
+    expect(data[1]).to.not.have.members([{'hash': ctx.tx.hash}]);
+    expect(data[2][0]).to.include({'to': ctx.tx.to});
     expect(data[3]).to.have.lengthOf.above(0);
 
   });
