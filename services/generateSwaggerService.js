@@ -2,7 +2,6 @@ const requireAll = require('require-all'),
   path = require('path'),
   _ = require('lodash'),
   config = require('../config'),
-  transactionModel = require('../models/transactionModel'),
   accountModel = require('../models/accountModel'),
   contract = require('truffle-contract'),
   fs = require('fs');
@@ -107,14 +106,14 @@ let definition = _.chain(contracts)
           produces: [
             'application/json'
           ],
-          parameters: _.transform(transactionModel.schema.obj, (result, obj, name) => {
+/*          parameters: _.transform(transactionModel.schema.obj, (result, obj, name) => { //todo refactor
             result.push({
               'name': name,
               'in': 'query',
               'required': false,
               'type': obj.type === Number ? 'integer' : 'string'
             });
-          }, []),
+          }, []),*/
           responses: {
             200: {
               description: 'successful operation',

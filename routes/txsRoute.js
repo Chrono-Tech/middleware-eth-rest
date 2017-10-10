@@ -27,7 +27,7 @@ module.exports = async (router) => {
   router.post('/account', async (req, res) => {
     let account = new accountModel(req.body);
     if (account.validateSync())
-    {return res.send(messages.fail);}
+      return res.send(messages.fail);
 
     try {
       await account.save();
@@ -54,7 +54,7 @@ module.exports = async (router) => {
   router.delete('/account', async (req, res) => {
 
     if (!req.body.address)
-    {return res.send(messages.fail);}
+      return res.send(messages.fail);
 
     try {
       await accountModel.remove({address: req.body.address});
