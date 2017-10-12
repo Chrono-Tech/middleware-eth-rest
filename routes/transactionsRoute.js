@@ -1,4 +1,5 @@
-const transactionModel = require('../models').transactionModel,
+const _ = require('lodash'),
+  transactionModel = require('../models').transactionModel,
   accountModel = require('../models').accountModel,
   messages = require('../factories').messages.genericMessageFactory,
   q2mb = require('query-to-mongo-and-back');
@@ -25,6 +26,11 @@ module.exports = async (router) => {
   });
 
   router.post('/account', async (req, res) => {
+    req.body.erc20token = _.chain(req.body.erc20tokens)
+      .transform((acc, addr) => {
+        acc[addr] = 0;
+      }, {})
+      .value();
     let account = new accountModel(req.body);
     if (account.validateSync())
     {return res.send(messages.fail);}
@@ -32,6 +38,7 @@ module.exports = async (router) => {
     try {
       await account.save();
     } catch (e) {
+      console.log(e)
       return res.send(messages.fail);
     }
     res.send(messages.success);
