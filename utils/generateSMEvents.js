@@ -6,16 +6,15 @@ const _ = require('lodash'),
   contract = require('truffle-contract');
 
 let contracts = {};
-
 let contractsPath = path.join(__dirname, '../node_modules', 'chronobank-smart-contracts/build/contracts');
 
-if (fs.existsSync(contractsPath)) {
+if (fs.existsSync(contractsPath))
   contracts = requireAll({ //scan dir for all smartContracts, excluding emitters (except ChronoBankPlatformEmitter) and interfaces
     dirname: contractsPath,
     filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/,
     resolve: Contract => contract(Contract)
   });
-}
+
 
 /**
  * @module events Controller
@@ -34,16 +33,15 @@ module.exports = () => {
     .flatten()
     .groupBy('name')
     .map(ev => ({
-      name: ev[0].name,
-      inputs: _.chain(ev)
-        .map(ev => ev.inputs)
-        .flattenDeep()
-        .uniqBy('name')
-        .value()
-    })
+        name: ev[0].name,
+        inputs: _.chain(ev)
+          .map(ev => ev.inputs)
+          .flattenDeep()
+          .uniqBy('name')
+          .value()
+      })
     )
     .transform((result, ev) => { //build mongo model, based on event definition from abi
-
       result[ev.name] = mongoose.model(ev.name, new mongoose.Schema(
         _.chain(ev.inputs)
           .transform((result, obj) => {
