@@ -5,14 +5,14 @@
   "dependencies": {
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
-    "chronobank-smart-contracts": "^1.1.36",
+    "chronobank-smart-contracts": "1.1.40",
     "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "express": "^4.15.4",
     "lodash": "^4.17.4",
     "mongoose": "^4.11.11",
     "mongoose-long": "^0.1.1",
-    "query-to-mongo-and-back": "git+https://github.com/ega-forever/query-to-mongo-and-back.git#develop",
+    "query-to-mongo": "^0.7.0",
     "require-all": "^2.2.0",
     "truffle-contract": "^2.0.5"
   },
