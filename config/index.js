@@ -8,14 +8,9 @@ const config = {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081
   },
-  transactions: {
-    ttl: parseInt(process.env.TRANSACTION_TTL) || false
-  },
-  smartContracts: {
-    events: {
-      listen: parseInt(process.env.SMART_CONTRACTS_EVENTS_LISTEN) || false,
-      ttl: parseInt(process.env.SMART_CONTRACTS_EVENTS_TTL) || false
-    }
+  web3: {
+    network: process.env.NETWORK || 'development',
+    uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
   }
 };
 
