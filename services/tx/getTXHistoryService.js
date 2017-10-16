@@ -1,5 +1,4 @@
-const accountModel = require('../../models/accountModel'),
-  _ = require('lodash'),
+const _ = require('lodash'),
   Promise = require('bluebird'),
   net = require('net'),
   Web3 = require('web3'),
