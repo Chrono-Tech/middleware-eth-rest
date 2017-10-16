@@ -1,9 +1,6 @@
 const messages = require('../factories/messages/genericMessageFactory'),
   express = require('express'),
   _ = require('lodash'),
-  queryToMongo = require('query-to-mongo'),
-  bunyan = require('bunyan'),
-  log = bunyan.createLogger({name: 'core.balanceProcessor'}),
   generateSMEvents = require('../utils/generateSMEvents'),
   services = require('../services');
 
@@ -27,23 +24,17 @@ module.exports = (app) => {
 
   routerTx.get('/:addr/history/:startBlock/:endBlock', services.tx.getTXHistoryService);
 
+  routerTx.post('/', services.tx.sendTXService);
+
   //register each event in express by its name
   _.forEach(eventModels, (model, name) => {
-    routerEvents.get(`/${name}`, (req, res) => {
-      //convert query request to mongo's
-      let q = queryToMongo(req.query);
-      //retrieve all records, which satisfy the query
-      model.find(q.criteria, q.options.fields)
-        .sort(q.options.sort)
-        .limit(q.options.limit)
-        .then(result => {
-          res.send(result);
-        })
-        .catch(err => {
-          log.error(err);
-          res.send([]);
-        });
-    });
+    routerEvents.get(`/${name}`, (req, res) =>
+      services.events.getEventService(req, res, model)
+    );
+  });
+
+  routerEvents.get('/', (req, res)=>{
+    res.send(Object.keys(eventModels));
   });
 
   app.use('/addr', routerAddr);
