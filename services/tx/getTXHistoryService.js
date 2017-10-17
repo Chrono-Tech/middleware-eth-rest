@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     return res.send(messagesGeneric.fail);
 
 
-  if(req.params.endBlock > 100)
+  if(req.params.endBlock - req.params.startBlock > 100)
     return res.send(messagesTx.largeBock);
 
   let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
