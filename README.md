@@ -2,7 +2,7 @@
 
 Middleware service for which expose rest api
 
-###Installation
+### Installation
 
 This module is a part of middleware services. You can install it in 2 ways:
 
@@ -20,25 +20,23 @@ The available routes are listed below:
 
 | route | methods | params | description |
 | ------ | ------ | ------ | ------ |
-| /transactions   | GET |  | returns an transaction's collection
-| /transactions/accounts   | GET | |returns list of registered accounts
-| /transactions/account   | POST |address - user's address |register a new account
-| /transactions/account   | DELETE |address - user's address | remove registered account
+| /addr   | POST | ``` {address: <string>, erc20tokens: [<string>]} ``` | register new address on middleware. erc20tokens - is an array of erc20Tokens, which balance changes this address will listen to.
+| /addr   | DELETE | ``` {address: <string>} ``` | remove an address from middleware
+| /addr/<address>/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
+| /addr/<address>/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
+| /addr/<address>/balance   | GET |  | retrieve balance of the registered address
+| /tx/<address>/history/<startBlock>/<endBlock>   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
+| /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /events   | GET | |returns list of all available events
 | /events/{event_name}   | GET | |returns an event's collection
-| /events/listener   | POST | event - event's name, filter - object, by which event's data will be filtered | register an event's listener with certain criteria (or filter) - when event is emitted, a callback will be fired with event's data and send it with POST request
 
 
 #### REST guery language
 
-Every collection could be fetched with an additional query. The api use [query-to-mongo-and-back](https://github.com/ega-forever/query-to-mongo-and-back) plugin as a backbone layer between GET request queries and mongo's. For instance, if we want to fetch all recods from collection 'issue', where issueNumber < 20, then we will make a call like that:
+Every collection could be fetched with an additional query. The api use [query-to-mongo](https://www.npmjs.com/package/query-to-mongo) plugin as a backbone layer between GET request queries and mongo's. For instance, if we want to fetch all recods from collection 'issue', where issueNumber < 20, then we will make a call like that:
 ```
 curl http://localhost:8080/events/issue?issueNumber<20
 ```
-
-For more information about queries, please refer to [query-to-mongo-and-back](https://github.com/ega-forever/query-to-mongo-and-back).
-
-
 
 
 ##### сonfigure your .env
@@ -48,11 +46,9 @@ Below is the expamle configuration:
 
 ```
 MONGO_URI=mongodb://localhost:27017/data
-IPFS_NODES=http://localhost:5001, http://localhost:5001
-SCHEDULE_JOB=30 * * * * *
-SCHEDULE_CHECK_TIME=0
-RABBIT_URI=amqp://localhost:5672
+REST_PORT=8081
 NETWORK=development
+WEB3_URI=/tmp/development/geth.ipc
 ```
 
 The options are presented below:
@@ -60,11 +56,9 @@ The options are presented below:
 | name | description|
 | ------ | ------ |
 | MONGO_URI   | the URI string for mongo connection
-| IPFS_NODES   | should contain a comma separated uri connection strings for ipfs nodes
-| SCHEDULE_JOB   | a configuration for ipfs pin plugin in a cron based format
-| SCHEDULE_CHECK_TIME   | an option, which defines how old should be records, which have to be pinned
-| RABBIT_URI   | rabbitmq URI connection string
+| REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
+| WEB3_URI   | the path to ipc interface
 
 License
 ----
