@@ -22,10 +22,10 @@ The available routes are listed below:
 | ------ | ------ | ------ | ------ |
 | /addr   | POST | ``` {address: <string>, erc20tokens: [<string>]} ``` | register new address on middleware. erc20tokens - is an array of erc20Tokens, which balance changes this address will listen to.
 | /addr   | DELETE | ``` {address: <string>} ``` | remove an address from middleware
-| /addr/<address>/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
-| /addr/<address>/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
-| /addr/<address>/balance   | GET |  | retrieve balance of the registered address
-| /tx/<address>/history/<startBlock>/<endBlock>   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
+| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
+| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
+| /addr/{address}/balance   | GET |  | retrieve balance of the registered address
+| /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /events   | GET | |returns list of all available events
 | /events/{event_name}   | GET | |returns an event's collection
