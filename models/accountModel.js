@@ -15,7 +15,8 @@ const Account = new mongoose.Schema({
   },
   balance: {type: mongoose.Schema.Types.Long, default: 0},
   created: {type: Date, required: true, default: Date.now},
-  erc20token : {type: mongoose.Schema.Types.Mixed, default: {}},
+  erc20token: {type: mongoose.Schema.Types.Mixed, default: {}},
+  secretKey: {type: String} 
 });
 
 module.exports = mongoose.model('EthAccount', Account);

@@ -1,6 +1,7 @@
 const config = require('./config'),
   express = require('express'),
   routes = require('./routes'),
+  authMiddleware = require('./utils/authMiddleware'),
   cors = require('cors'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
@@ -19,6 +20,7 @@ let app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+app.use(authMiddleware);
 
 routes(app);
 
