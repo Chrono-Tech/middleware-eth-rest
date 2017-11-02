@@ -14,7 +14,7 @@ const auth = async (req, res, next) => {
 	user = await findKey(token)
 
 	if (user)
-		res.user.address = user.address;
+		res.user = fillUpUser(user)
 
 	next();
 }
@@ -25,6 +25,10 @@ const getBearer = authStr => {
 	return  match ? match[1] : null;
 };
 
-const findKey = token => accountModel.findOne({secret:token});
+const findKey = token => accountModel.findOne({secret: token});
+
+const fillUpUser = user => ({
+	address: user.address
+});
 
 module.exports = auth;
