@@ -21,6 +21,7 @@ module.exports = (app) => {
   routerAddr.post('/:addr/token', services.address.registerAddrTokenService);
   routerAddr.delete('/:addr/token', services.address.deregisterAddrTokenService);
   routerAddr.get('/:addr/balance', services.address.getAddrBalanceService);
+  routerAddr.post('/:addr/secret', services.address.getAddrSecretService);
 
   routerTx.get('/:addr/history/:startBlock/:endBlock', services.tx.getTXHistoryService);
 

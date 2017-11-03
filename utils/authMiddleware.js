@@ -1,34 +1,34 @@
 const accountModel = require('../models/accountModel');
-
-const AUTH_HEADER = 'authorization';
-const DEFAULT_AUTH_SCHEME = 'Bearer';
+  AUTH_HEADER = 'authorization',
+  DEFAULT_AUTH_SCHEME = 'Bearer',
+  SECRET_FIELD = 'secret';
 
 const auth = async (req, res, next) => {
-	res.user = {};
-	const authStr = req.headers[AUTH_HEADER];
-	const token = getBearer(authStr);
+  res.user = {};
+  const authStr = req.headers[AUTH_HEADER];
+  const token = authStr ? getBearer(authStr) : null;
 
-	if(!token)
-		return next();
+  if(!token)
+    return next();
 
-	user = await findKey(token)
+  user = await findKey(token)
 
-	if (user)
-		res.user = fillUpUser(user)
+  if (user)
+    res.user = fillUpUser(user)
 
-	next();
+  next();
 }
 
 const getBearer = authStr => {
-	const regex = new RegExp(`^${DEFAULT_AUTH_SCHEME}\\s+(.*)$`, 'i');
-	const match = authStr.match(regex);
-	return  match ? match[1] : null;
+  const regex = new RegExp(`^${DEFAULT_AUTH_SCHEME}\\s+(.*)$`, 'i');
+  const match = authStr.match(regex);
+  return  match ? match[1] : null;
 };
 
-const findKey = token => accountModel.findOne({secret: token});
+const findKey = token => accountModel.findOne({[SECRET_FIELD]: token});
 
 const fillUpUser = user => ({
-	address: user.address
+  address: user.address
 });
 
 module.exports = auth;
