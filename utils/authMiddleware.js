@@ -1,7 +1,6 @@
 const accountModel = require('../models/accountModel');
   AUTH_HEADER = 'authorization',
-  DEFAULT_AUTH_SCHEME = 'Bearer',
-  SECRET_FIELD = 'secret';
+  DEFAULT_AUTH_SCHEME = 'Bearer';
 
 const auth = async (req, res, next) => {
   res.user = {};
@@ -25,7 +24,7 @@ const getBearer = authStr => {
   return  match ? match[1] : null;
 };
 
-const findKey = token => accountModel.findOne({[SECRET_FIELD]: token});
+const findKey = token => accountModel.findOne({password: token});
 
 const fillUpUser = user => ({
   address: user.address

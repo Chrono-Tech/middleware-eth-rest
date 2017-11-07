@@ -1,3 +1,7 @@
+/**
+ * @module middleware-eth-rest
+ * @description Ethereum REST service 
+ */
 const config = require('./config'),
   express = require('express'),
   routes = require('./routes'),

@@ -6,6 +6,7 @@ const messages = require('../factories/messages/genericMessageFactory'),
 
 module.exports = (app) => {
 
+  // Routing
   let routerAddr = express.Router();
   let routerTx = express.Router();
   let routerEvents = express.Router();

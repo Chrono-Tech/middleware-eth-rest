@@ -1,7 +1,6 @@
 const mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
   messages = require('../factories/messages/accountMessageFactory');
-  SECRET_FIELD = 'secret',
   SALT_WORK_FACTOR = 10;
 
 require('mongoose-long')(mongoose);
@@ -19,24 +18,25 @@ const Account = new mongoose.Schema({
   balance: {type: mongoose.Schema.Types.Long, default: 0},
   created: {type: Date, required: true, default: Date.now},
   erc20token: {type: mongoose.Schema.Types.Mixed, default: {}},
-  [SECRET_FIELD]: {type: String}
+  password: {type: String}
 });
 
-Account.pre('save', function(next) {
-  let user = this;
+Account.virtual('clean_password')
+  .set(function (clean_password) {
+    this.password = this.encryptPassword(clean_password);
+  })
+  .get(function () { return this.password });
 
-  if(!user[SECRET_FIELD]) next();
-  
-  const salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
-  const hash = bcrypt.hashSync(user[SECRET_FIELD], salt);
-  user[SECRET_FIELD] = hash;
-
-  next();
-});
-
-Account.methods.compareSecret = function(candidateSecret) {
-  if(!candidateSecret) return false;
-  return bcrypt.compareSync(candidateSecret, this[SECRET_FIELD]);
+Account.methods = {
+  authenticate: function(plainPassword) {
+    return bcrypt.compareSync(plainPassword, this.password)
+  },
+  encryptPassword: function(password) {
+    if (!password)
+      return '';
+    const salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
+    return bcrypt.hashSync(password, salt);
+  }
 };
 
 module.exports = mongoose.model('EthAccount', Account);
