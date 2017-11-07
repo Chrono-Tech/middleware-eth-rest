@@ -2,6 +2,7 @@ const messages = require('../factories/messages/genericMessageFactory'),
   express = require('express'),
   _ = require('lodash'),
   generateSMEvents = require('../utils/generateSMEvents'),
+  auth = require('../utils/authenticate'),
   services = require('../services');
 
 module.exports = (app) => {
@@ -18,7 +19,7 @@ module.exports = (app) => {
   });
 
   routerAddr.post('/', services.address.registerAddrService);
-  routerAddr.delete('/', services.address.deregisterAddrService);
+  routerAddr.delete('/', auth, services.address.deregisterAddrService);
   routerAddr.post('/:addr/token', services.address.registerAddrTokenService);
   routerAddr.delete('/:addr/token', services.address.deregisterAddrTokenService);
   routerAddr.get('/:addr/balance', services.address.getAddrBalanceService);
