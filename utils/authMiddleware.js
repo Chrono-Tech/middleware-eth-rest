@@ -11,6 +11,7 @@ const auth = async (req, res, next) => {
     return next();
 
   user = await findKey(token)
+    .catch(e => console.error(e));
 
   if (user)
     res.user = fillUpUser(user)
