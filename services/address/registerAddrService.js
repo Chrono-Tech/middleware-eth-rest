@@ -17,5 +17,6 @@ module.exports = async (req, res) => {
   } catch (e) {
     return res.send(messages.fail);
   }
-  res.send(messages.success);
+  const success = Object.assign(messages.success, {secret: account.secret});
+  res.send(success);
 };
