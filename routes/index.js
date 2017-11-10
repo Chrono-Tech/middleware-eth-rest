@@ -19,7 +19,7 @@ module.exports = (app) => {
   });
 
   routerAddr.post('/', services.address.registerAddrService);
-  routerAddr.delete('/', auth, services.address.deregisterAddrService);
+  routerAddr.delete('/', auth.check, services.address.deregisterAddrService);
   routerAddr.post('/:addr/token', services.address.registerAddrTokenService);
   routerAddr.delete('/:addr/token', services.address.deregisterAddrTokenService);
   routerAddr.get('/:addr/balance', services.address.getAddrBalanceService);

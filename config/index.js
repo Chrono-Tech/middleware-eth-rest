@@ -6,7 +6,8 @@ const config = {
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
-    port: parseInt(process.env.REST_PORT) || 8081
+    port: parseInt(process.env.REST_PORT) || 8081,
+    auth: true
   },
   web3: {
     network: process.env.NETWORK || 'development',
