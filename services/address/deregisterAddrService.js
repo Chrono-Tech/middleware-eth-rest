@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest 
+ * @module service/deregisterAddrService
+ * @returns {undefined}
+ */
+
 const accountModel = require('../../models/accountModel'),
   auth = require('../../utils/authenticate'),
   messages = require('../../factories/messages/genericMessageFactory');
@@ -15,5 +21,4 @@ module.exports = async (req, res) => {
     return res.send(messages.fail);
   }
   res.send(messages.success);
-
 };

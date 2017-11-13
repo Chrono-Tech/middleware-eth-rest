@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest route bootstrap
+ * @module routes
+ * @returns {undefined}
+ */
+
 const messages = require('../factories/messages/genericMessageFactory'),
   express = require('express'),
   _ = require('lodash'),
@@ -7,17 +13,19 @@ const messages = require('../factories/messages/genericMessageFactory'),
 
 module.exports = (app) => {
 
-  // Routing
+  // Define express.js Routers
   let routerAddr = express.Router();
   let routerTx = express.Router();
   let routerEvents = express.Router();
 
+  // Get models for all smart contract events
   let eventModels = generateSMEvents();
 
   app.get('/', (req, res) => {
     res.send(messages.success);
   });
 
+  // Address routes
   routerAddr.post('/', services.address.registerAddrService);
   routerAddr.delete('/', auth.check, services.address.deregisterAddrService);
   routerAddr.post('/:addr/token', services.address.registerAddrTokenService);
@@ -25,18 +33,18 @@ module.exports = (app) => {
   routerAddr.get('/:addr/balance', services.address.getAddrBalanceService);
   routerAddr.post('/:addr/secret', services.address.getAddrSecretService);
 
+  // Transaction router
   routerTx.get('/:addr/history/:startBlock/:endBlock', services.tx.getTXHistoryService);
-
   routerTx.post('/', services.tx.sendTXService);
 
-  //register each event in express by its name
+  //Register each event in express by its name
   _.forEach(eventModels, (model, name) => {
     routerEvents.get(`/${name}`, (req, res) =>
       services.events.getEventService(req, res, model)
     );
   });
-
-  routerEvents.get('/', (req, res)=>{
+  // All possible events
+  routerEvents.get('/', (req, res) => {
     res.send(Object.keys(eventModels));
   });
 

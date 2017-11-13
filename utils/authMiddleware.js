@@ -1,4 +1,10 @@
-const accountModel = require('../models/accountModel');
+/**
+ * Middleware service for handling Authentication
+ * @module utils/authMiddleware
+ * @requires models/accountModel
+ */
+
+const accountModel = require('../models/accountModel'),
   AUTH_HEADER = 'authorization',
   DEFAULT_AUTH_SCHEME = 'Bearer';
 
@@ -19,6 +25,11 @@ const auth = async (req, res, next) => {
   next();
 }
 
+/**
+ * Extract token string from header
+ * @param  {string} authStr Incoming string from AUTH_HEADER
+ * @return {string} extracted string         
+ */
 const getBearer = authStr => {
   const regex = new RegExp(`^${DEFAULT_AUTH_SCHEME}\\s+(.*)$`, 'i');
   const match = authStr.match(regex);
@@ -27,6 +38,11 @@ const getBearer = authStr => {
 
 const findKey = token => accountModel.findOne({password: token});
 
+/**
+ * Makes User's session data
+ * @param  {Object} user User's model
+ * @return {Object}
+ */
 const fillUpUser = user => ({
   address: user.address
 });
