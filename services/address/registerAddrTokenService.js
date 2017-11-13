@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest 
+ * @module service/registerAddrTokenService
+ * @returns {undefined}
+ */
+
 const accountModel = require('../../models/accountModel'),
   messages = require('../../factories/messages/genericMessageFactory'),
   _ = require('lodash');

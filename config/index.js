@@ -1,3 +1,8 @@
+/**
+ * Chronobank/eth-rest configuration
+ * @module config
+ * @returns {Object} Configuration
+ */
 require('dotenv').config();
 
 const config = {

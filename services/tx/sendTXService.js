@@ -1,3 +1,9 @@
+/**
+ * Middleware service for handling ERC20 token smart contracts
+ * @module service/sendTXService
+ * @requires web3
+ */
+
 const Promise = require('bluebird'),
   net = require('net'),
   Web3 = require('web3'),
