@@ -1,5 +1,5 @@
 /**
- * Chronobank/eth-rest 
+ * Chronobank/eth-rest
  * @module service/registerAddrTokenService
  * @returns {undefined}
  */
@@ -24,11 +24,6 @@ module.exports = async (req, res) => {
     }, {})
     .value();
 
-  try {
-    await accountModel.update({address: addr}, {$set: toAdd});
-  } catch (e) {
-    return res.send(messages.fail);
-  }
-
+  await accountModel.update({address: addr}, {$set: toAdd});
   res.send(messages.success);
 };

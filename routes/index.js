@@ -36,6 +36,8 @@ module.exports = (app) => {
   // Transaction router
   routerTx.get('/:addr/history/:startBlock/:endBlock', services.tx.getTXHistoryService);
   routerTx.post('/', services.tx.sendTXService);
+  routerTx.get('/:hash', services.tx.getTXByHashService);
+
 
   //Register each event in express by its name
   _.forEach(eventModels, (model, name) => {
