@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest 
+ * @module service/getAddrBalanceService
+ * @returns {undefined}
+ */
+
 const accountModel = require('../../models/accountModel'),
   _ = require('lodash');
 

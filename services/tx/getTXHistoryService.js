@@ -1,3 +1,9 @@
+/**
+ * Middleware service for handling ERC20 token smart contracts
+ * @module service/getTXHistoryService
+ * @requires web3
+ */
+
 const _ = require('lodash'),
   Promise = require('bluebird'),
   net = require('net'),
@@ -8,13 +14,11 @@ const _ = require('lodash'),
 
 module.exports = async (req, res) => {
 
-
   req.params.startBlock = _.toNumber(req.params.startBlock);
   req.params.endBlock = _.toNumber(req.params.endBlock) || req.params.startBlock + 100;
 
   if (!_.isNumber(req.params.startBlock))
     return res.send(messagesGeneric.fail);
-
 
   if(req.params.endBlock - req.params.startBlock > 100)
     return res.send(messagesTx.largeBock);
