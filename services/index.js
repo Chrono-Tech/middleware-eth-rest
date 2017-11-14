@@ -1,6 +1,6 @@
 /**
  * Bootstrap for services
- * @requires require-all
+ * @requires factories/genericMessageFactory
  */
 
 const require_all = require('require-all'),

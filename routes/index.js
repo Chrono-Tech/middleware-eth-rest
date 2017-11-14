@@ -1,6 +1,9 @@
 /**
  * Chronobank/eth-rest route bootstrap
  * @module routes
+ * @requires factories/genericMessageFactory
+ * @requires utils/generateSMEvents
+ * @requires utils/authenticate
  * @returns {undefined}
  */
 

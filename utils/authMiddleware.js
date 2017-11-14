@@ -5,6 +5,8 @@
  */
 
 const accountModel = require('../models/accountModel'),
+  bunyan = require('bunyan'),
+  log = bunyan.createLogger({name: 'core.chronoErc20Processor'}),
   AUTH_HEADER = 'authorization',
   DEFAULT_AUTH_SCHEME = 'Bearer';
 
@@ -16,14 +18,14 @@ const auth = async (req, res, next) => {
   if(!token)
     return next();
 
-  user = await findKey(token)
-    .catch(e => console.error(e));
+  const user = await findKey(token)
+    .catch(e => log.error(e));
 
   if (user)
-    res.user = fillUpUser(user)
+    res.user = fillUpUser(user);
 
   next();
-}
+};
 
 /**
  * Extract token string from header
