@@ -1,5 +1,5 @@
 /**
- * Chronobank/eth-rest 
+ * Chronobank/eth-rest
  * @module service/registerAddrService
  * @returns {undefined}
  */
@@ -16,17 +16,12 @@ module.exports = async (req, res) => {
     .value();
 
   let account = new accountModel(req.body);
-  
+
   if (account.validateSync())
     return res.send(messages.fail);
 
-  try {
-    await account.save();
-  } catch (e) {
-    return res.send(messages.fail);
-  }
-  
+  await account.save();
   const success = Object.assign(messages.success, {secret: account.secret});
-  
+
   res.send(success);
 };

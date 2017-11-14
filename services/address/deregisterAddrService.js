@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
   try {
     await accountModel.remove({address: req.body.address});
     if(!auth.isOwner(res, req.body.address))
-      throw new Error('Not owner')
+      throw new Error('Not owner');
   } catch (e) {
     return res.send(messages.fail);
   }

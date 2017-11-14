@@ -12,7 +12,7 @@ const config = {
   rest: {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081,
-    auth: true
+    auth: process.env.USE_AUTH || false
   },
   web3: {
     network: process.env.NETWORK || 'development',
