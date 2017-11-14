@@ -2,6 +2,8 @@
  * Middleware service for handling ERC20 token smart contracts
  * @module service/getTXHistoryService
  * @requires web3
+ * @requires factories/genericMessageFactory
+ * @requires factories/txServiceMessageFactory
  */
 
 const _ = require('lodash'),

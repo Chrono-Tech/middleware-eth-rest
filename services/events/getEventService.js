@@ -4,9 +4,9 @@
  * @requires query-to-mongo
  */
 
-const queryToMongo = require('query-to-mongo')
+const queryToMongo = require('query-to-mongo'),
   bunyan = require('bunyan'),
-  log = bunyan.createLogger({name: 'core.chronoErc20Processor'}),
+  log = bunyan.createLogger({name: 'core.chronoErc20Processor'});
 
 /**
  * Handling for event queries

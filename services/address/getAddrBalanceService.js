@@ -1,6 +1,7 @@
 /**
  * Chronobank/eth-rest 
  * @module service/getAddrBalanceService
+ * @requires models/accountModel
  * @returns {undefined}
  */
 

@@ -1,6 +1,8 @@
 /**
  * Chronobank/eth-rest 
  * @module service/deregisterAddrTokenService
+ * @requires models/accountModel
+ * @requires factories/genericMessageFactory
  * @returns {undefined}
  */
 
