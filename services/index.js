@@ -1,3 +1,8 @@
+/**
+ * Bootstrap for services
+ * @requires require-all
+ */
+
 const require_all = require('require-all'),
   bunyan = require('bunyan'),
   log = bunyan.createLogger({name: 'core.rest'}),

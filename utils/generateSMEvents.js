@@ -1,3 +1,9 @@
+/**
+ * Load all events for smartContracts, output models
+ * @module utils/generateSMEvents
+ * @requires truffle-contract
+ */
+
 const _ = require('lodash'),
   requireAll = require('require-all'),
   path = require('path'),
@@ -14,13 +20,6 @@ if (fs.existsSync(contractsPath))
     filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/,
     resolve: Contract => contract(Contract)
   });
-
-
-/**
- * @module events Controller
- * @description initialize all events for smartContracts,
- * @returns {{eventModels, signatures}}
- */
 
 module.exports = () => {
 
