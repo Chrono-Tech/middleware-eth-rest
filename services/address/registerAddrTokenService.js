@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest
+ * @module service/registerAddrTokenService
+ * @returns {undefined}
+ */
+
 const accountModel = require('../../models/accountModel'),
   messages = require('../../factories/messages/genericMessageFactory'),
   _ = require('lodash');
@@ -18,11 +24,6 @@ module.exports = async (req, res) => {
     }, {})
     .value();
 
-  try {
-    await accountModel.update({address: addr}, {$set: toAdd});
-  } catch (e) {
-    return res.send(messages.fail);
-  }
-
+  await accountModel.update({address: addr}, {$set: toAdd});
   res.send(messages.success);
 };

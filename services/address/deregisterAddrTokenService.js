@@ -1,3 +1,9 @@
+/**
+ * Chronobank/eth-rest
+ * @module service/deregisterAddrTokenService
+ * @returns {undefined}
+ */
+
 const accountModel = require('../../models/accountModel'),
   messages = require('../../factories/messages/genericMessageFactory'),
   _ = require('lodash');
@@ -6,7 +12,6 @@ module.exports = async (req, res) => {
 
   const addr = req.params.addr;
   const erc20addr = req.body.erc20tokens;
-
   const user = await accountModel.findOne({address: addr});
 
   if (!user)
@@ -19,11 +24,7 @@ module.exports = async (req, res) => {
     }, {})
     .value();
 
-  try {
-    await accountModel.update({address: addr}, {$unset: toRemove});
-  } catch (e) {
-    return res.send(messages.fail);
-  }
+  await accountModel.update({address: addr}, {$unset: toRemove});
 
   res.send(messages.success);
 };

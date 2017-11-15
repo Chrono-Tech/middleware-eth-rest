@@ -1,3 +1,8 @@
+/**
+ * Chronobank/eth-rest configuration
+ * @module config
+ * @returns {Object} Configuration
+ */
 require('dotenv').config();
 
 const config = {
@@ -6,7 +11,8 @@ const config = {
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
-    port: parseInt(process.env.REST_PORT) || 8081
+    port: parseInt(process.env.REST_PORT) || 8081,
+    auth: process.env.USE_AUTH || false
   },
   web3: {
     network: process.env.NETWORK || 'development',

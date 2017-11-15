@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
     "chronobank-smart-contracts": "1.1.40",
@@ -14,8 +15,8 @@
     "mongoose-long": "^0.1.1",
     "query-to-mongo": "^0.7.0",
     "require-all": "^2.2.0",
-    "web3": "^0.19.0",
-    "truffle-contract": "^2.0.5"
+    "truffle-contract": "^2.0.5",
+    "web3": "^0.19.0"
   },
   "scripts": {
     "lint": "node ./node_modules/eslint/bin/eslint.js -c .eslintrc.js --ext .js --fix --ignore-path .eslintignore .",
@@ -25,9 +26,10 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "babel-eslint": "^8.0.2",
     "chai": "^4.1.1",
-    "mocha": "^3.5.0",
     "eslint": "^4.6.1",
-    "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank"
+    "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
+    "mocha": "^3.5.0"
   }
 }
