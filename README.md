@@ -27,6 +27,7 @@ The available routes are listed below:
 | /addr/{address}/balance   | GET |  | retrieve balance of the registered address
 | /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
+| /tx/{hash}   | GET | | return tx by its hash
 | /events   | GET | |returns list of all available events
 | /events/{event_name}   | GET | |returns an event's collection
 
@@ -49,6 +50,7 @@ MONGO_URI=mongodb://localhost:27017/data
 REST_PORT=8081
 NETWORK=development
 WEB3_URI=/tmp/development/geth.ipc
+USE_AUTH=0
 ```
 
 The options are presented below:
@@ -58,7 +60,8 @@ The options are presented below:
 | MONGO_URI   | the URI string for mongo connection
 | REST_PORT   | rest plugin port
 | NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
-| WEB3_URI   | the path to ipc interface
+| NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
+| USE_AUTH   | use authentication for /addr POST and DELETE
 
 License
 ----

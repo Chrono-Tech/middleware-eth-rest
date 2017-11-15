@@ -10,7 +10,7 @@ const _ = require('lodash'),
   Web3 = require('web3'),
   config = require('../../config'),
   messagesGeneric = require('../../factories/messages/genericMessageFactory'),
-  messagesTx = require('../../factories/messages/txServiceMessageFactory');
+  messagesTx = require('../../factories/messages/txMessageFactory');
 
 module.exports = async (req, res) => {
 
@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
   req.params.endBlock = _.toNumber(req.params.endBlock) || req.params.startBlock + 100;
 
   if (!_.isNumber(req.params.startBlock))
-    return res.send(messagesGeneric.fail);
+    return res.send(messagesGeneric.notEnoughArgs);
 
   if(req.params.endBlock - req.params.startBlock > 100)
     return res.send(messagesTx.largeBock);
@@ -26,6 +26,10 @@ module.exports = async (req, res) => {
   let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
   const web3 = new Web3();
   web3.setProvider(provider);
+  web3.currentProvider.connection.on('end', () => {
+    //log.error('ipc process has finished!');
+    process.exit(0);
+  });
 
   let txs = [];
 

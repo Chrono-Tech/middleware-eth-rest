@@ -13,30 +13,27 @@ const auth = async (req, res, next) => {
   const authStr = req.headers[AUTH_HEADER];
   const token = authStr ? getBearer(authStr) : null;
 
-  if(!token)
+  if (!token)
     return next();
 
-  user = await findKey(token)
-    .catch(e => console.error(e));
+  let user = await accountModel.findOne({password: token});
 
   if (user)
-    res.user = fillUpUser(user)
+    res.user = fillUpUser(user);
 
   next();
-}
+};
 
 /**
  * Extract token string from header
  * @param  {string} authStr Incoming string from AUTH_HEADER
- * @return {string} extracted string         
+ * @return {string || null} extracted string
  */
 const getBearer = authStr => {
   const regex = new RegExp(`^${DEFAULT_AUTH_SCHEME}\\s+(.*)$`, 'i');
   const match = authStr.match(regex);
-  return  match ? match[1] : null;
+  return match ? match[1] : null;
 };
-
-const findKey = token => accountModel.findOne({password: token});
 
 /**
  * Makes User's session data
