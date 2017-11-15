@@ -17,6 +17,7 @@ module.exports = (app) => {
   let routerAddr = express.Router();
   let routerTx = express.Router();
   let routerEvents = express.Router();
+  let routerFunctions = express.Router();
 
   // Get models for all smart contract events
   let eventModels = generateSMEvents();
@@ -50,8 +51,11 @@ module.exports = (app) => {
     res.send(Object.keys(eventModels));
   });
 
+  routerFunctions.post('/generate', services.events.generateSignedFunctionsService);
+
   app.use('/addr', routerAddr);
   app.use('/tx', routerTx);
   app.use('/events', routerEvents);
+  app.use('/functions', routerFunctions);
 
 };
