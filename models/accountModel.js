@@ -6,7 +6,7 @@
 
 const mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
-  messages = require('../factories/messages/accountMessageFactory');
+  messages = require('../factories/messages/addressMessageFactory'),
   SALT_WORK_FACTOR = 10;
 
 require('mongoose-long')(mongoose);
@@ -36,7 +36,7 @@ Account.virtual('clean_password')
   .set(function (clean_password) {
     this.password = this.encryptPassword(clean_password);
   })
-  .get(function () { return this.password });
+  .get(function () { return this.password; });
 
 Account.methods = {
   /**
@@ -44,15 +44,15 @@ Account.methods = {
    * @param  {string} plainPassword
    * @return {boolean}
    */
-  authenticate: function(plainPassword) {
-    return bcrypt.compareSync(plainPassword, this.password)
+  authenticate: function (plainPassword) {
+    return bcrypt.compareSync(plainPassword, this.password);
   },
   /**
    * 
    * @param  {string} password Plain password to encrypt
    * @return {string} Encrypted password
    */
-  encryptPassword: function(password) {
+  encryptPassword: function (password) {
     if (!password)
       return '';
     const salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);

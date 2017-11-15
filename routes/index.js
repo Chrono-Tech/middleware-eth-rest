@@ -17,6 +17,7 @@ module.exports = (app) => {
   let routerAddr = express.Router();
   let routerTx = express.Router();
   let routerEvents = express.Router();
+  let routerFunctions = express.Router();
 
   // Get models for all smart contract events
   let eventModels = generateSMEvents();
@@ -36,6 +37,8 @@ module.exports = (app) => {
   // Transaction router
   routerTx.get('/:addr/history/:startBlock/:endBlock', services.tx.getTXHistoryService);
   routerTx.post('/', services.tx.sendTXService);
+  routerTx.get('/:hash', services.tx.getTXByHashService);
+
 
   //Register each event in express by its name
   _.forEach(eventModels, (model, name) => {
@@ -48,8 +51,11 @@ module.exports = (app) => {
     res.send(Object.keys(eventModels));
   });
 
+  routerFunctions.post('/generate', services.events.generateSignedFunctionsService);
+
   app.use('/addr', routerAddr);
   app.use('/tx', routerTx);
   app.use('/events', routerEvents);
+  app.use('/functions', routerFunctions);
 
 };
