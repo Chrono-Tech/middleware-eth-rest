@@ -5,27 +5,29 @@
     defaults: {
       contract: {value: ""},
       contractFunction: {value: ""},
-      args: []
+      args: [],
+      name: {value: 'sc-extract-call'}
     },
     inputs: 1,
     outputs: 1,
     icon: "function.png",
-    label: () => 'sc-extract-call',
+    label: function () {
+      return this.name;
+    },
     oneditprepare: function () {
-      function resizeRule (rule) {
+      let resizeRule = rule => {
         let newWidth = rule.width();
         rule.find('.red-ui-typedInput').typedInput("width", (newWidth - 15) / 2);
-      }
+      };
 
-      let argsList = $("#node-input-args-container").css('min-height', '150px').css('min-width', '450px').editableList({
+      let argsList = $("#node-input-args-container").editableList({
         addItem: function (container, index, data) {
-          console.log(data);
           let row = $('<div/>').appendTo(container);
 
-          let input = $('<input/>', {class: "node-input-arg-value", type: "text", style: "margin-left: 10px"})
+          let input = $('<input/>', {class: "node-input-arg-value", type: "text"})
             .appendTo(row);
 
-          if (data)
+          if (typeof data === 'string')
             input.val(data);
 
           resizeRule(container);
@@ -44,7 +46,7 @@
       let args = $("#node-input-args-container").editableList('items');
       let node = this;
       node.args = [];
-      args.each(function (i, n) {
+      args.each(function () {
         let arg = $(this);
         let val = arg.find(".node-input-arg-value").val();
         node.args.push(val);
@@ -55,6 +57,12 @@
 </script>
 
 <script type="text/x-red" data-template-name="sc-extract-call">
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
     <div class="form-row">
         <label for="node-input-contract"><i class="icon-tag"></i> contract name</label>
         <input type="text" id="node-input-contract" placeholder="contract_name">
@@ -80,10 +88,15 @@
 
 
 
+
 </script>
 
 <script type="text/x-red" data-help-name="extract_call">
     <p> transform sc call to unsigned tx </p>
+
+
+
+
 
 
 

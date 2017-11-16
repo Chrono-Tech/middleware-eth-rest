@@ -1,5 +1,4 @@
-const Promise = require('bluebird'),
-  net = require('net'),
+const net = require('net'),
   contract = require('truffle-contract'),
   Web3 = require('web3'),
   _ = require('lodash'),
@@ -15,6 +14,9 @@ module.exports = function (RED) {
       console.log(redConfig.contractFunction);
       console.log(redConfig.args);
 
+
+      let args = _.get(msg,'payload.args')  || redConfig.args || [];
+
       let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
       const web3 = new Web3();
       web3.setProvider(provider);
@@ -26,15 +28,21 @@ module.exports = function (RED) {
 
       let callContract = contract(contractDefinition);
       callContract.setProvider(provider);
-      let callContractInstance = await callContract.deployed();
-      let data = web3.eth.contract(smartContracts[redConfig.contract].abi).at(callContractInstance.address)[redConfig.contractFunction].getData(...redConfig.args);
-      web3.currentProvider.connection.end();
+      try {
+        let callContractInstance = await callContract.deployed();
+        let data = web3.eth.contract(smartContracts[redConfig.contract].abi).at(callContractInstance.address)[redConfig.contractFunction].getData(...args);
+        web3.currentProvider.connection.end();
 
-      msg.payload = {
-        hash: data
-      };
+        msg.payload = {
+          hash: data
+        };
 
-      node.send(msg);
+        node.send(msg);
+      }catch (e){
+        msg.payload = {};
+        node.send(msg);
+      }
+
     });
   }
 
