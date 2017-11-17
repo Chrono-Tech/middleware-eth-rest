@@ -1,0 +1,45 @@
+<script type="text/javascript">
+  RED.nodes.registerType("mongo", {
+    category: "connectors",
+    color: "#E2D96E",
+    defaults: {
+      model: {value: ""},
+      request: {value: JSON.stringify({})},
+      name: {value: 'mongo'}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "function.png",
+    label: function () {
+      return this.name;
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="mongo">
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-model"><i class="icon-tag"></i>Model name</label>
+        <input type="text" id="node-input-model" placeholder="model">
+    </div>
+
+        <div class="form-row">
+        <label for="node-input-request"><i class="icon-tag"></i>Request</label>
+        <input type="text" id="node-input-request" placeholder="request">
+    </div>
+
+
+
+
+</script>
+
+<script type="text/x-red" data-help-name="mongo">
+    <p> simple mongoose query connector </p>
+
+
+</script>

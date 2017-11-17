@@ -10,12 +10,8 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, redConfig);
     let node = this;
     this.on('input', async function (msg) {
-      console.log(redConfig.contract);
-      console.log(redConfig.contractFunction);
-      console.log(redConfig.args);
 
-
-      let args = _.get(msg,'payload.args')  || redConfig.args || [];
+      let args = _.get(msg, 'payload.args') || redConfig.args || [];
 
       let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
       const web3 = new Web3();
@@ -23,8 +19,10 @@ module.exports = function (RED) {
 
       let contractDefinition = smartContracts[redConfig.contract];
 
-      if (!contractDefinition)
-        return {};
+      if (!contractDefinition) {
+        msg.payload = {};
+        return node.send(msg);
+      }
 
       let callContract = contract(contractDefinition);
       callContract.setProvider(provider);
@@ -38,7 +36,7 @@ module.exports = function (RED) {
         };
 
         node.send(msg);
-      }catch (e){
+      } catch (e) {
         msg.payload = {};
         node.send(msg);
       }
