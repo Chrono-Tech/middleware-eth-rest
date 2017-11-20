@@ -9,7 +9,7 @@ const accountModel = require('../../models/accountModel'),
 
 module.exports = async (req, res) => {
 
-  const account = await accountModel.findOne({address: req.params.addr});
+  const account = await accountModel.findOne({address: req.params.addr.toLowerCase()});
   const message = (req.body.secret && account && account.authenticate(req.body.secret)) ?
     {token: account.password} : messages.fail;
 
