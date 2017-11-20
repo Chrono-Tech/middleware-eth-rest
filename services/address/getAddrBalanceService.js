@@ -9,7 +9,7 @@ const accountModel = require('../../models/accountModel'),
 
 module.exports = async (req, res) => {
 
-  let account = await accountModel.findOne({address: req.params.addr});
+  let account = await accountModel.findOne({address: req.params.addr.toLowerCase()});
 
   res.send({
     balance: _.get(account, 'balance', 0),

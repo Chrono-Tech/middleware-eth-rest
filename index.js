@@ -10,10 +10,17 @@ const config = require('./config'),
   cors = require('cors'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
+  bunyan = require('bunyan'),
+  log = bunyan.createLogger({name: 'core.rest'}),
   bodyParser = require('body-parser');
 
 mongoose.Promise = Promise;
 mongoose.connect(config.mongo.uri, {useMongoClient: true});
+
+mongoose.connection.on('disconnected', function () {
+  log.error('mongo disconnected!');
+  process.exit(0);
+});
 
 let app = express();
 
