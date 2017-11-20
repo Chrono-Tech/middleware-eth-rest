@@ -11,10 +11,10 @@ const accountModel = require('../../models/accountModel'),
 module.exports = async (req, res) => {
   req.body.erc20token = _.chain(req.body.erc20tokens)
     .transform((acc, addr) => {
-      acc[addr] = 0;
+      acc[addr.toLowerCase()] = 0;
     }, {})
     .value();
-
+  req.body.address = req.body.address.toLowerCase();
   let account = new accountModel(req.body);
 
   if (account.validateSync())

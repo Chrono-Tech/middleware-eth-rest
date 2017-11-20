@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
   for(let i = req.params.startBlock; i < req.params.endBlock; i++){
     let rawBlock = await Promise.promisify(web3.eth.getBlock)(i, true);
     rawBlock.transactions.forEach(tx=>{
-      if([tx.to, tx.from].includes(req.params.addr))
+      if([tx.to, tx.from].includes(req.params.addr.toLowerCase()))
         txs.push(tx);
     });
   }
