@@ -10,7 +10,7 @@ const accountModel = require('../../models/accountModel'),
 
 module.exports = async (req, res) => {
 
-  const addr = req.params.addr;
+  const addr = req.params.addr.toLowerCase();
   const erc20addr = req.body.erc20tokens;
   const user = await accountModel.findOne({address: addr});
 
@@ -18,6 +18,7 @@ module.exports = async (req, res) => {
     return res.send(messages.fail);
 
   const toRemove = _.chain(erc20addr)
+    .map(addr=>addr.toLowerCase())
     .filter(val => _.has(user.erc20token, val))
     .transform((acc, addr) => {
       acc[`erc20token.${addr}`] = 1;
