@@ -4,13 +4,7 @@
  * @returns {Object} Configuration
  */
 require('dotenv').config();
-const path = require('path'),
-  nodeMongo = require('node-red-flows-mongo');
-
-
-nodeMongo.init = (settings)=>{
-  nodeMongo.settings = settings;
-};
+const path = require('path');
 
 const config = {
   mongo: {
@@ -26,28 +20,27 @@ const config = {
     uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
   },
   nodered: {
-    flowFile: path.join(__dirname, 'nodered', 'flow.json'),
-    httpAdminRoot: '/red/admin',
-    userDir: path.join(__dirname, 'nodered'),
-    httpNodeRoot: '/red',
-    mqttReconnectTime: 4000,
-    serialReconnectTime: 4000,
+    mongo: {
+      uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
+    },
+    httpAdminRoot: '/admin',
+    httpNodeRoot: '/',
     debugMaxLength: 1000,
-/*    adminAuth: {
-      type: 'credentials',
-      users: [{
-        username: 'admin',
-        password: '$2a$08$zZWtXTja0fB1pzD4sHCMyOCMYz2Z6dNbM6tl8sJogENOMcxWV9DN.',
-        permissions: '*'
-      }]
-    },*/
+    adminAuth: require('../controllers/nodeRedAuthController'),
     nodesDir: path.join(__dirname, '../'),
     autoInstallModules: true,
     functionGlobalContext: {
-      _: require('lodash')
+      _: require('lodash'),
+      factories: {
+        sm: require('../factories/sc/smartContractsFactory'),
+        messages: {
+          address: require('../factories/messages/addressMessageFactory'),
+          generic: require('../factories/messages/genericMessageFactory'),
+          tx: require('../factories/messages/txMessageFactory')
+        }
+      }
     },
-    //storageModule: require('node-red-flows-mongo'),
-    //mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/data'
+    storageModule: require('../controllers/nodeRedStorageController')
   }
 };
 

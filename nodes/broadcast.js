@@ -8,7 +8,6 @@ module.exports = function (RED) {
     RED.nodes.createNode(this, redConfig);
     let node = this;
     this.on('input', async function (msg) {
-      console.log(msg.payload);
 
       let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
       const web3 = new Web3();
