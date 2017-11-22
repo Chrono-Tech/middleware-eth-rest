@@ -6,15 +6,15 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
-    "chronobank-smart-contracts": "1.1.40",
+    "chronobank-smart-contracts": "^1.1.42",
     "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "express": "^4.15.4",
     "lodash": "^4.17.4",
+    "mongodb-migrations": "^0.8.5",
     "mongoose": "^4.11.11",
     "mongoose-long": "^0.1.1",
     "node-red": "^0.17.5",
-    "node-red-flows-mongo": "^0.5.2",
     "query-to-mongo": "^0.7.0",
     "require-all": "^2.2.0",
     "truffle-contract": "^2.0.5",
@@ -22,7 +22,8 @@
   },
   "scripts": {
     "lint": "node ./node_modules/eslint/bin/eslint.js -c .eslintrc.js --ext .js --fix --ignore-path .eslintignore .",
-    "test": "node ./node_modules/mocha/bin/mocha -t 90000 tests"
+    "test": "node ./node_modules/mocha/bin/mocha -t 90000 tests",
+    "migrate_red": "node migrate.js"
   },
   "author": "",
   "license": "ISC",

@@ -1,0 +1,40 @@
+<script type="text/javascript">
+  RED.nodes.registerType("query-to-mongo", {
+    category: "utils",
+    color: "#E2D96E",
+    defaults: {
+      request_type: {value: '0'},
+      name: {value: 'query-to-mongo'}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "function.png",
+    label: function () {
+      return this.name;
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="query-to-mongo">
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label>Request type</label>
+        <select id="node-input-request_type" style="width:200px;">
+            <option value="0">GET</option>
+            <option value="1">POST</option>
+            <option value="2">PUT</option>
+            <option value="3">DELETE</option>
+        </select>
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="query-to-mongo">
+    <p> converts query params to mongo like query</p>
+
+</script>

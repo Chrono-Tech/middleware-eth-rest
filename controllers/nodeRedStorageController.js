@@ -1,11 +1,14 @@
 const NodeRedStorageModel = require('../models/nodeRedStorageModel'),
   when = require('when'),
+  mongoose = require('mongoose'),
   path = require('path');
 
-let simpleLoad = (type, path) => {
 
+let simpleLoad = (type, path) => {
   return when.resolve((async () => {
-    let storageDocument = await NodeRedStorageModel.findOne({type: type, path: path});
+
+    let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+    let storageDocument = await StorageModel.findOne({type: type, path: path});
 
     if (!storageDocument || !storageDocument.body)
       return [];
@@ -21,15 +24,16 @@ let simpleSave = (type, path, blob) => {
 
   return when.resolve((async () => {
 
-    let storageDocument = await NodeRedStorageModel.findOne({type: type, path: path});
+    let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+
+    let storageDocument = await StorageModel.findOne({type: type, path: path});
 
     if (!storageDocument || !storageDocument.body)
-      storageDocument = new NodeRedStorageModel({type: type, path: path});
+      storageDocument = new StorageModel({type: type, path: path});
 
     storageDocument.body = JSON.stringify(blob);
 
-
-    await NodeRedStorageModel.update({_id: storageDocument._id}, storageDocument, {
+    await StorageModel.update({_id: storageDocument._id}, storageDocument, {
       upsert: true,
       setDefaultsOnInsert: true
     })
@@ -74,7 +78,7 @@ let sortDocumentsIntoPaths = (documents) => {
 };
 
 const mongodb = {
-  init: () => when.resolve(), //thumb function
+  init: ()=> when.resolve(), //thumb function
 
   getFlows: () => simpleLoad('flows', '/'),
 
@@ -96,14 +100,15 @@ const mongodb = {
 
     return when.resolve((async () => {
       let resolvedType = 'library-' + type;
-      let storageDocument = await NodeRedStorageModel.findOne({type: resolvedType, path: path});
+      let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+      let storageDocument = await StorageModel.findOne({type: resolvedType, path: path});
 
       if (storageDocument)
         return JSON.parse(storageDocument.body);
 
       // Probably a directory listing...
       // Crudely return everything.
-      let storageDocuments = await NodeRedStorageModel.find({type: resolvedType});
+      let storageDocuments = await StorageModel.find({type: resolvedType});
       let result = sortDocumentsIntoPaths(storageDocuments);
       return result[path] || [];
 
@@ -114,10 +119,11 @@ const mongodb = {
 
     return when.promise((async () => {
       let resolvedType = 'library-' + type;
-      let storageDocument = await NodeRedStorageModel.findOne({type: resolvedType, path: path});
+      let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+      let storageDocument = await StorageModel.findOne({type: resolvedType, path: path});
 
       if (!storageDocument)
-        storageDocument = new NodeRedStorageModel({type: resolvedType, path: path});
+        storageDocument = new StorageModel({type: resolvedType, path: path});
 
       storageDocument.meta = JSON.stringify(meta);
       storageDocument.body = JSON.stringify(body);

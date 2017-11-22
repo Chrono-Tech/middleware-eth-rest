@@ -4,9 +4,7 @@
  * @returns {Object} Configuration
  */
 require('dotenv').config();
-const path = require('path'),
-  bcrypt = require('bcryptjs');
-
+const path = require('path');
 
 const config = {
   mongo: {
@@ -22,23 +20,25 @@ const config = {
     uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
   },
   nodered: {
-    httpAdminRoot: '/red/admin',
-    httpNodeRoot: '/red',
-    mqttReconnectTime: 4000,
-    serialReconnectTime: 4000,
-    debugMaxLength: 1000,
-    adminAuth: {
-      type: 'credentials',
-      users: [{
-        username: 'admin',
-        password: bcrypt.hashSync('123', 8),
-        permissions: '*'
-      }]
+    mongo: {
+      uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
+    httpAdminRoot: '/admin',
+    httpNodeRoot: '/',
+    debugMaxLength: 1000,
+    adminAuth: require('../controllers/nodeRedAuthController'),
     nodesDir: path.join(__dirname, '../'),
     autoInstallModules: true,
     functionGlobalContext: {
-      _: require('lodash')
+      _: require('lodash'),
+      factories: {
+        sm: require('../factories/sc/smartContractsFactory'),
+        messages: {
+          address: require('../factories/messages/addressMessageFactory'),
+          generic: require('../factories/messages/genericMessageFactory'),
+          tx: require('../factories/messages/txMessageFactory')
+        }
+      }
     },
     storageModule: require('../controllers/nodeRedStorageController')
   }
