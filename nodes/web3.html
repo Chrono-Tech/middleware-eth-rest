@@ -20,6 +20,27 @@
         rule.find('.red-ui-typedInput').typedInput("width", (newWidth - 15) / 2);
       };
 
+
+      $("#node-input-mode").change(function (e) {
+        let val = $(this).val();
+
+        if (val === '1') {
+          $("#node-input-params-list").hide();
+          $('label[for="node-input-params-list"]').hide();
+
+          $("#node-input-method").hide();
+          $('label[for="node-input-method"]').hide();
+
+        } else {
+          $("#node-input-params-list").show();
+          $('label[for="node-input-params-list"]').show();
+
+          $("#node-input-method").show();
+          $('label[for="node-input-method"]').show();
+        }
+
+      });
+
       let paramsList = $("#node-input-params-container").editableList({
         addItem: function (container, index, data) {
           let row = $('<div/>').appendTo(container);
@@ -37,6 +58,7 @@
       });
 
       if (this.params) {
+        console.log(this.params);
         for (let param of this.params) {
           paramsList.editableList('addItem', param);
         }
@@ -50,7 +72,6 @@
         let param = $(this);
         let val = param.find(".node-input-param-value").val();
         node.params.push(val);
-
       });
     }
   });
@@ -78,9 +99,9 @@
 
 
     <div class="form-row" style="margin-bottom:0;">
-        <label><i class="fa fa-list"></i> params</label>
+        <label for="node-input-params-list"><i class="fa fa-list"></i> params</label>
     </div>
-    <div class="form-row node-input-params-container-row">
+    <div class="form-row" id="node-input-params-list">
         <ol id="node-input-params-container"></ol>
     </div>
 
