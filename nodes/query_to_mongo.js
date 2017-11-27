@@ -6,14 +6,8 @@ module.exports = function (RED) {
     let node = this;
     this.on('input', async function (msg) {
 
-      try {
-        msg.payload = q2m(redConfig.request_type === '0' ? msg.req.query : msg.payload);
-        node.send(msg);
-      } catch (e) {
-        msg.payload = {};
-        node.send(msg);
-      }
-
+      msg.payload = q2m(redConfig.request_type === '0' ? msg.req.query : msg.payload);
+      node.send(msg);
     });
   }
 

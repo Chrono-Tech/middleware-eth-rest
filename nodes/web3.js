@@ -21,35 +21,17 @@ module.exports = function (RED) {
         //log.error('ipc process has finished!');
         process.exit(0);
       });
-      try {
-        let response = await Promise.promisify(web3.currentProvider.sendAsync).bind(web3.currentProvider)({
-          jsonrpc: '2.0',
-          method: method,
-          params: params, // 60 seconds, may need to be hex, I forget
-          id: new Date().getTime() // Id of the request; anything works, really
-        }).timeout(10000);
+      let response = await Promise.promisify(web3.currentProvider.sendAsync).bind(web3.currentProvider)({
+        jsonrpc: '2.0',
+        method: method,
+        params: params, // 60 seconds, may need to be hex, I forget
+        id: new Date().getTime() // Id of the request; anything works, really
+      }).timeout(10000);
 
-        msg.payload = _.get(response, 'result', {});
+      msg.payload = _.get(response, 'result', {});
+      web3.currentProvider.connection.end();
 
-        /*        msg.payload = await new Promise((res, rej) =>
-         web3.currentProvider.sendAsync({
-         jsonrpc: '2.0',
-         method: method,
-         params: params,
-         id: new Date().getTime()
-         }, (err, result) => {
-         console.log(err, result);
-         res();
-         }));*/
-
-        web3.currentProvider.connection.end();
-
-        node.send(msg);
-      } catch (e) {
-        console.log(e);
-        msg.payload = {};
-        node.send(msg);
-      }
+      node.send(msg);
 
     });
   }

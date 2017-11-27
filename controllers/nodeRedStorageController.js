@@ -4,7 +4,7 @@ const NodeRedStorageModel = require('../models/nodeRedStorageModel'),
   path = require('path');
 
 
-let simpleLoad = (type, path) => {
+let simpleLoad = (type, path, parse = true) => {
   return when.resolve((async () => {
 
     let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
@@ -13,7 +13,7 @@ let simpleLoad = (type, path) => {
     if (!storageDocument || !storageDocument.body)
       return [];
 
-    return typeof(storageDocument.body) === 'string' ?
+    return parse ?
       JSON.parse(storageDocument.body) :
       storageDocument.body;
   })());
@@ -84,7 +84,7 @@ const mongodb = {
 
   saveFlows: flows => simpleSave('flows', '/', flows),
 
-  getCredentials: () => simpleLoad('credentials', '/'),
+  getCredentials: () => simpleLoad('credentials', '/', false),
 
   saveCredentials: credentials => simpleSave('credentials', '/', credentials),
 
