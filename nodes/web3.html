@@ -1,0 +1,116 @@
+<script type="text/javascript">
+  RED.nodes.registerType("web3", {
+    category: "smart contracts",
+    color: "#E2D96E",
+    defaults: {
+      mode: {value: '1'},
+      method: {value: ""},
+      params: [],
+      name: {value: 'web3'}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "function.png",
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {
+      let resizeRule = rule => {
+        let newWidth = rule.width();
+        rule.find('.red-ui-typedInput').typedInput("width", (newWidth - 15) / 2);
+      };
+
+
+      $("#node-input-mode").change(function (e) {
+        let val = $(this).val();
+
+        if (val === '1') {
+          $("#node-input-params-list").hide();
+          $('label[for="node-input-params-list"]').hide();
+
+          $("#node-input-method").hide();
+          $('label[for="node-input-method"]').hide();
+
+        } else {
+          $("#node-input-params-list").show();
+          $('label[for="node-input-params-list"]').show();
+
+          $("#node-input-method").show();
+          $('label[for="node-input-method"]').show();
+        }
+
+      });
+
+      let paramsList = $("#node-input-params-container").editableList({
+        addItem: function (container, index, data) {
+          let row = $('<div/>').appendTo(container);
+
+          let input = $('<input/>', {class: "node-input-param-value", type: "text"})
+            .appendTo(row);
+
+          if (typeof data === 'string')
+            input.val(data);
+
+          resizeRule(container);
+        },
+        resizeItem: resizeRule,
+        removable: true
+      });
+
+      if (this.params) {
+        console.log(this.params);
+        for (let param of this.params) {
+          paramsList.editableList('addItem', param);
+        }
+      }
+    },
+    oneditsave: function () {
+      let params = $("#node-input-params-container").editableList('items');
+      let node = this;
+      node.params = [];
+      params.each(function () {
+        let param = $(this);
+        let val = param.find(".node-input-param-value").val();
+        node.params.push(val);
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="web3">
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label>Mode</label>
+        <select id="node-input-mode" style="width:200px;">
+            <option value="1">from flow params</option>
+            <option value="0">manual</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-method"><i class="icon-tag"></i>method</label>
+        <input type="text" id="node-input-method" placeholder="method">
+    </div>
+
+
+    <div class="form-row" style="margin-bottom:0;">
+        <label for="node-input-params-list"><i class="fa fa-list"></i> params</label>
+    </div>
+    <div class="form-row" id="node-input-params-list">
+        <ol id="node-input-params-container"></ol>
+    </div>
+
+
+
+
+</script>
+
+<script type="text/x-red" data-help-name="web3">
+    <p> transform sc call to unsigned tx </p>
+
+</script>
