@@ -1,0 +1,139 @@
+<script type="text/javascript">
+  RED.nodes.registerType("mongo", {
+    category: "connectors",
+    color: "#E2D96E",
+    defaults: {
+      model: {value: ""},
+      request: {value: JSON.stringify({})},
+      name: {value: 'mongo'},
+      mode: {value: '1'},
+      requestType: {value: '0'}
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: "function.png",
+    label: function () {
+      return this.name;
+    },
+    oneditprepare: function () {
+
+      $("#node-input-mode").change(function (e) {
+        let val = $(this).val();
+
+        if (val === '1') {
+          $("#node-input-request-editor").hide();
+          $('label[for="node-input-request"]').hide();
+
+          $("#node-input-model").hide();
+          $('label[for="node-input-model"]').hide();
+
+        } else {
+          $("#node-input-model").show();
+          $('label[for="node-input-model"]').show();
+
+          $("#node-input-request-editor").show();
+          $('label[for="node-input-request"]').show();
+        }
+
+      });
+
+      this.editor = RED.editor.createEditor({
+        id: 'node-input-request-editor',
+        mode: 'ace/mode/javascript',
+        value: $("#node-input-request").val()
+      });
+
+      this.editor.focus();
+    },
+
+    oneditsave: function() {
+      let annot = this.editor.getSession().getAnnotations();
+      this.noerr = 0;
+      $("#node-input-noerr").val(0);
+      for (var k=0; k < annot.length; k++) {
+        if (annot[k].type === "error") {
+          $("#node-input-noerr").val(annot.length);
+          this.noerr = annot.length;
+        }
+      }
+      $("#node-input-request").val(this.editor.getValue());
+      this.editor.destroy();
+      delete this.editor;
+    },
+    oneditcancel: function() {
+      this.editor.destroy();
+      delete this.editor;
+    },
+    oneditresize: function(size) {
+      let rows = $("#dialog-form>div:not(.node-text-editor-row)");
+      let height = $("#dialog-form").height();
+      for (let i=0; i<rows.size(); i++) {
+        height -= $(rows[i]).outerHeight(true);
+      }
+      let editorRow = $("#dialog-form>div.node-text-editor-row");
+      height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
+      $(".node-text-editor").css("height",height+"px");
+      this.editor.resize();
+    }
+
+
+  });
+</script>
+
+<script type="text/x-red" data-template-name="mongo">
+
+    <div class="form-row">
+        <label>Mode</label>
+        <select id="node-input-mode" style="width:200px;">
+            <option value="1">from flow params</option>
+            <option value="0">manual</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-model"><i class="icon-tag"></i>Model name</label>
+        <input type="text" id="node-input-model" placeholder="model">
+    </div>
+
+    <div class="form-row">
+        <label>Type</label>
+        <select id="node-input-requestType" style="width:200px;">
+            <option value="0">query</option>
+            <option value="1">insert</option>
+            <option value="2">update</option>
+            <option value="3">delete</option>
+            <option value="4">aggregate</option>
+        </select>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-request"><i class="icon-tag"></i>Request</label>
+        <input type="hidden" id="node-input-request" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr">
+    </div>
+
+    <div class="form-row node-text-editor-row">
+        <div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-request-editor" ></div>
+    </div>
+
+
+
+
+
+
+</script>
+
+<script type="text/x-red" data-help-name="mongo">
+    <p> simple mongoose query connector </p>
+
+
+
+
+
+
+</script>
