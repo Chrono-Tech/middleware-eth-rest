@@ -6,6 +6,9 @@
 require('dotenv').config();
 const path = require('path'),
   Web3 = require('web3'),
+  bunyan = require('bunyan'),
+  util = require('util'),
+  log = bunyan.createLogger({name: 'core.rest'}),
   net = require('net');
 
 let config = {
@@ -43,13 +46,27 @@ let config = {
       },
       'truffle-contract': require('truffle-contract')
     },
-    storageModule: require('../controllers/nodeRedStorageController')
+    storageModule: require('../controllers/nodeRedStorageController'),
+    logging: {
+      console: {
+        level: 'info',
+        metrics: true,
+        handler: () =>
+          (msg) => {
+            log.info(util.inspect(msg, null, 3));
+          }
+      }
+    }
   }
 };
 
-module.exports = (()=>{
+module.exports = (() => {
   let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
   config.nodered.functionGlobalContext.web3 = new Web3();
   config.nodered.functionGlobalContext.web3.setProvider(provider);
+  config.nodered.functionGlobalContext.web3.currentProvider.connection.on('error', () => {
+    log.error('ipc process has finished!');
+    process.exit(0);
+  });
   return config;
 })();
