@@ -22,6 +22,7 @@ const init = async () => {
   migrator.bulkAdd(migrations);
   await Promise.promisifyAll(migrator).migrateAsync();
   migrator.dispose();
+  process.exit(0);
 };
 
 module.exports = init();

@@ -32,14 +32,19 @@ module.exports = function (RED) {
         return node.send(msg);
       }
 
-      if (redConfig.mode === '0') {
-        const script = new vm.Script(`(()=>(${redConfig.request}))()`);
-        const context = vm.createContext({});
-        msg.payload = script.runInContext(context);
+      try {
+        if (redConfig.mode === '0') {
+          const script = new vm.Script(`(()=>(${redConfig.request}))()`);
+          const context = vm.createContext({});
+          msg.payload = script.runInContext(context);
+        }
+
+        msg.payload = await query(redConfig.requestType, modelName, msg.payload.request);
+        node.send(msg);
+      } catch (err) {
+        this.error(JSON.stringify(err), msg);
       }
 
-      msg.payload = await query(redConfig.requestType, modelName, msg.payload.request);
-      node.send(msg);
     });
   }
 
