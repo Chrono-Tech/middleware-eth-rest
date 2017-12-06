@@ -1,4 +1,5 @@
 const mongoose = require('mongoose'),
+  _ = require('lodash'),
   vm = require('vm');
 
 module.exports = function (RED) {
@@ -26,20 +27,26 @@ module.exports = function (RED) {
 
       let models = mongoose.modelNames();
       let modelName = redConfig.mode === '1' ? msg.payload.model : redConfig.model;
+      let origName = _.find(models, m=> m.toLowerCase() === modelName.toLowerCase());
 
-      if (!models.includes(modelName)) {
+      if (!origName) {
         msg.payload = [];
         return node.send(msg);
       }
 
-      if (redConfig.mode === '0') {
-        const script = new vm.Script(`(()=>(${redConfig.request}))()`);
-        const context = vm.createContext({});
-        msg.payload = script.runInContext(context);
+      try {
+        if (redConfig.mode === '0') {
+          const script = new vm.Script(`(()=>(${redConfig.request}))()`);
+          const context = vm.createContext({});
+          msg.payload = script.runInContext(context);
+        }
+
+        msg.payload = await query(redConfig.requestType, origName, msg.payload.request);
+        node.send(msg);
+      } catch (err) {
+        this.error(JSON.stringify(err), msg);
       }
 
-      msg.payload = await query(redConfig.requestType, modelName, msg.payload.request);
-      node.send(msg);
     });
   }
 

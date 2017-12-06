@@ -2,7 +2,7 @@
 
 const bcrypt = require('bcryptjs');
 
-module.exports.id = '02';
+module.exports.id = '2.01';
 
 module.exports.up = function (done) {
   let coll = this.db.collection('noderedusers');
