@@ -23,6 +23,8 @@ require('require-all')({
   filter: /(.+Model)\.js$/
 });
 
+require('./utils/generateSMEvents')();
+
 mongoose.Promise = Promise;
 mongoose.connect(config.mongo.uri, {useMongoClient: true});
 mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
