@@ -5,7 +5,6 @@
 
 const config = require('./config'),
   express = require('express'),
-  //authMiddleware = require('./utils/authMiddleware'),
   cors = require('cors'),
   path = require('path'),
   Promise = require('bluebird'),
@@ -37,16 +36,24 @@ mongoose.connection.on('disconnected', function () {
   process.exit(0);
 });
 
-let app = express();
-let httpServer = http.createServer(app);
-app.use(cors());
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
-//app.use(authMiddleware);
 
-RED.init(httpServer, config.nodered);
-app.use(config.nodered.httpAdminRoot, RED.httpAdmin);
-app.use(config.nodered.httpNodeRoot, RED.httpNode);
+const init = async () => {
 
-httpServer.listen(config.rest.port);
-RED.start();
+  if (config.nodered.autoSyncMigrations)
+    await require('./migrate');
+
+  let app = express();
+  let httpServer = http.createServer(app);
+  app.use(cors());
+  app.use(bodyParser.urlencoded({extended: false}));
+  app.use(bodyParser.json());
+
+  RED.init(httpServer, config.nodered);
+  app.use(config.nodered.httpAdminRoot, RED.httpAdmin);
+  app.use(config.nodered.httpNodeRoot, RED.httpNode);
+
+  httpServer.listen(config.rest.port);
+  RED.start();
+};
+
+module.exports = init();
