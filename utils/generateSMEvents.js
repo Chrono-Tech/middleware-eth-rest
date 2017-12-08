@@ -6,17 +6,15 @@
 
 const _ = require('lodash'),
   requireAll = require('require-all'),
-  path = require('path'),
+  config = require('../config'),
   fs = require('fs'),
   mongoose = require('mongoose'),
   contract = require('truffle-contract');
 
 let contracts = {};
-let contractsPath = path.join(__dirname, '../node_modules', 'chronobank-smart-contracts/build/contracts');
-
-if (fs.existsSync(contractsPath))
+if (fs.existsSync(config.smartContracts.path))
   contracts = requireAll({ //scan dir for all smartContracts, excluding emitters (except ChronoBankPlatformEmitter) and interfaces
-    dirname: contractsPath,
+    dirname: config.smartContracts.path,
     filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/,
     resolve: Contract => contract(Contract)
   });
