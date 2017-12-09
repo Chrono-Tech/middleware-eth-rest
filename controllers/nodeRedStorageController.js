@@ -1,8 +1,8 @@
 const NodeRedStorageModel = require('../models/nodeRedStorageModel'),
   when = require('when'),
+  _ = require('lodash'),
   mongoose = require('mongoose'),
   path = require('path');
-
 
 let simpleLoad = (type, path, parse = true) => {
   return when.resolve((async () => {
@@ -46,6 +46,65 @@ let simpleSave = (type, path, blob) => {
 
 };
 
+let saveFlows = (blob) => {
+
+  return when.resolve((async () => {
+
+    let items = _.chain(blob)
+      .groupBy('z')
+      .toPairs()
+      .map(pair => ({
+        path: pair[0] === 'undefined' ? 'tabs' : pair[0],
+        body: pair[1]
+      })
+      )
+      .value();
+
+    let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+
+    for (let item of items) {
+
+      let storageDocument = await StorageModel.findOne({type: 'flows', path: item.path});
+
+      if (!storageDocument || !storageDocument.body)
+        storageDocument = new StorageModel({type: 'flows', path: item.path});
+
+      storageDocument.body = item.body;
+
+      await StorageModel.update({_id: storageDocument._id}, storageDocument, {
+        upsert: true,
+        setDefaultsOnInsert: true
+      })
+        .catch(e => {
+          if (e.code !== 11000)
+            return Promise.reject(e);
+        });
+
+    }
+
+  })());
+
+};
+
+let loadFlows = () => {
+  return when.resolve((async () => {
+
+    let StorageModel = mongoose.red.models[NodeRedStorageModel.collection.collectionName];
+    let storageDocuments = await StorageModel.find({type: 'flows'});
+
+    if (!storageDocuments)
+      return [];
+
+    return _.chain(storageDocuments)
+      .map(storageDocument => _.get(storageDocument, 'body', []))
+      .flattenDeep()
+      .uniqBy('id')
+      .value();
+
+  })());
+
+};
+
 let sortDocumentsIntoPaths = (documents) => {
 
   let sorted = {};
@@ -78,11 +137,11 @@ let sortDocumentsIntoPaths = (documents) => {
 };
 
 const mongodb = {
-  init: ()=> when.resolve(), //thumb function
+  init: () => when.resolve(), //thumb function
 
-  getFlows: () => simpleLoad('flows', '/'),
+  getFlows: loadFlows,
 
-  saveFlows: flows => simpleSave('flows', '/', flows),
+  saveFlows: saveFlows,
 
   getCredentials: () => simpleLoad('credentials', '/', false),
 

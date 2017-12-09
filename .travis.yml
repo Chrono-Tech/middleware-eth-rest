@@ -7,6 +7,7 @@ node_js: 7.6.0
 
 services:
   - mongodb
+  - rabbitmq
 
 before_install:
   - mongo data --eval 'db.dropDatabase();'
@@ -14,12 +15,16 @@ before_install:
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 install:
+  - sudo rabbitmq-plugins enable rabbitmq_web_stomp
   - npm install
   - npm install -g pm2
   - npm run migrate_red
 
 before_script:
-    - pm2 start index.js
+    - cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && npm install
+    - cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && pm2 start ipcConverter.js
+    - sleep 30 && cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && pm2 start index.js
+    - cd $TRAVIS_BUILD_DIR && pm2 start index.js
 
 script:
   - sleep 20 && npm test -- --coverage
