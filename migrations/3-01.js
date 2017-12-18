@@ -775,5 +775,4 @@ module.exports.down = function (done) {
     'type': 'flows',
     'path': '2c9dd332.05334c'
   }, done);
-  done();
 };

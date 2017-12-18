@@ -9,7 +9,9 @@ const mm = require('mongodb-migrations'),
   Promise = require('bluebird'),
   migrations = _.values(
     requireAll({
-      dirname: path.join(__dirname, 'migrations')
+      dirname: path.join(__dirname, 'migrations'),
+      recursive: false,
+      filter: /(.+)\.js$/
     })
   ),
   pm2Path = path.join(__dirname, '../../ecosystem.config.js'),
