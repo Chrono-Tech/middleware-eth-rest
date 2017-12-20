@@ -15,6 +15,7 @@ const config = require('./config'),
   http = require('http'),
   NodeRedStorageModel = require('./models/nodeRedStorageModel'),
   NodeRedUserModel = require('./models/nodeRedUserModel'),
+  MigrationModel = require('./models/migrationModel'),
   bodyParser = require('body-parser');
 
 require('require-all')({
@@ -30,6 +31,7 @@ mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
 
 mongoose.red.model(NodeRedStorageModel.collection.collectionName, NodeRedStorageModel.schema);
 mongoose.red.model(NodeRedUserModel.collection.collectionName, NodeRedUserModel.schema);
+mongoose.red.model(MigrationModel.collection.collectionName, MigrationModel.schema);
 
 mongoose.connection.on('disconnected', function () {
   log.error('mongo disconnected!');
