@@ -39,7 +39,7 @@ module.exports = () => {
     })
     )
     .transform((result, ev) => { //build mongo model, based on event definition from abi
-      result[ev.name] = mongoose.model(ev.name, new mongoose.Schema(
+      result[ev.name] = mongoose.data.model(ev.name, new mongoose.Schema(
         _.chain(ev.inputs)
           .transform((result, obj) => {
             result[obj.name] = {

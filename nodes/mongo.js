@@ -4,18 +4,20 @@ const mongoose = require('mongoose'),
 
 module.exports = function (RED) {
 
-  async function query (type, modelName, query) {
+  async function query (type, modelName, query, dbAlias) {
+
+    let connection = mongoose[dbAlias] || mongoose.accounts;
 
     if (type === '0')
-      return await mongoose.models[modelName].find(query);
+      return await connection.models[modelName].find(query);
     if (type === '1')
-      return await new mongoose.models[modelName](query).save();
+      return await new connection.models[modelName](query).save();
     if (type === '2')
-      return await mongoose.models[modelName].update(...query);
+      return await connection.models[modelName].update(...query);
     if (type === '3')
-      return await mongoose.models[modelName].remove(query);
+      return await connection.models[modelName].remove(query);
     if (type === '4')
-      return await mongoose.models[modelName].aggregate(query);
+      return await connection.models[modelName].aggregate(query);
 
     return [];
   }
@@ -25,9 +27,9 @@ module.exports = function (RED) {
     let node = this;
     this.on('input', async function (msg) {
 
-      let models = mongoose.modelNames();
+      let models = (mongoose[redConfig.dbAlias] || mongoose.accounts).modelNames();
       let modelName = redConfig.mode === '1' ? msg.payload.model : redConfig.model;
-      let origName = _.find(models, m=> m.toLowerCase() === modelName.toLowerCase());
+      let origName = _.find(models, m => m.toLowerCase() === modelName.toLowerCase());
 
       if (!origName) {
         msg.payload = [];
@@ -41,7 +43,8 @@ module.exports = function (RED) {
           msg.payload = script.runInContext(context);
         }
 
-        msg.payload = await query(redConfig.requestType, origName, msg.payload.request);
+        msg.payload = JSON.parse(JSON.stringify(await query(redConfig.requestType, origName, msg.payload.request, redConfig.dbAlias)));
+
         node.send(msg);
       } catch (err) {
         this.error(JSON.stringify(err), msg);

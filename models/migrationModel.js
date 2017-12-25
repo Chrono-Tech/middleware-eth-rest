@@ -19,4 +19,4 @@ const Migration = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('_migration', Migration);
+module.exports = mongoose.red.model('_migration', Migration);
