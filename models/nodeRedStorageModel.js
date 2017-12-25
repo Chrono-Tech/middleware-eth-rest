@@ -21,4 +21,4 @@ const NodeRedStorage = new mongoose.Schema({
 NodeRedStorage.index({ type: 1, path: 1 }, {unique: true});
 
 
-module.exports = mongoose.model('NodeRedStorage', NodeRedStorage);
+module.exports = mongoose.red.model('NodeRedStorage', NodeRedStorage);
