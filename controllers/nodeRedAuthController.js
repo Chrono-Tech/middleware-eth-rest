@@ -1,6 +1,5 @@
 const NodeRedUserModel = require('../models/nodeRedUserModel'),
   when = require('when'),
-  mongoose = require('mongoose'),
   bcrypt = require('bcryptjs');
 
 module.exports = {
@@ -8,8 +7,7 @@ module.exports = {
   users: function (username) {
     return when.resolve((async () => {
 
-      let UserModel = mongoose.red.models[NodeRedUserModel.collection.collectionName];
-      let user = await UserModel.findOne({username: username, isActive: true});
+      let user = await NodeRedUserModel.findOne({username: username, isActive: true});
 
       return user ?
         {username: user.username, permissions: user.permissions} : null;
@@ -17,10 +15,7 @@ module.exports = {
   },
   authenticate: function (username, password) {
     return when.resolve((async () => {
-
-      let UserModel = mongoose.red.models[NodeRedUserModel.collection.collectionName];
-      let user = await UserModel.findOne({username: username, isActive: true});
-
+      let user = await NodeRedUserModel.findOne({username: username, isActive: true});
       return user && bcrypt.compare(password, user.password) ?
         {username: user.username, permissions: user.permissions} : null;
 

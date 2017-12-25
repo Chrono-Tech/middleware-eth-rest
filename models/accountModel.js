@@ -6,6 +6,7 @@
 
 const mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
+  config = require('../config'),
   messages = require('../factories/messages/addressMessageFactory'),
   SALT_WORK_FACTOR = 10;
 
@@ -60,4 +61,4 @@ Account.methods = {
   }
 };
 
-module.exports = mongoose.model('EthAccount', Account);
+module.exports = mongoose.accounts.model(`${config.mongo.accounts.collectionPrefix}Account`, Account);

@@ -18,4 +18,4 @@ const NodeRedUser = new mongoose.Schema({
   isActive: {type: Boolean, default: true}
 });
 
-module.exports = mongoose.model('NodeRedUser', NodeRedUser);
+module.exports = mongoose.red.model('NodeRedUser', NodeRedUser);

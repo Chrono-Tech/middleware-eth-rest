@@ -1,5 +1,8 @@
 require('dotenv/config');
 
+process.env.USE_MONGO_DATA = 1;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const config = require('../config'),
   mongoose = require('mongoose'),
   expect = require('chai').expect,
@@ -20,14 +23,7 @@ const config = require('../config'),
   smEvents = require('../utils/generateSMEvents')(),
   ctx = {};
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
-
-  before(async () => {
-    mongoose.Promise = Promise;
-    mongoose.connect(config.mongo.uri, {useMongoClient: true});
-  });
 
   after(() => {
     return mongoose.disconnect();
