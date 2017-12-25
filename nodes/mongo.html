@@ -7,7 +7,8 @@
       request: {value: JSON.stringify({})},
       name: {value: 'mongo'},
       mode: {value: '1'},
-      requestType: {value: '0'}
+      requestType: {value: '0'},
+      dbAlias: {value: 'accounts'}
     },
     inputs: 1,
     outputs: 1,
@@ -88,6 +89,11 @@
             <option value="1">from flow params</option>
             <option value="0">manual</option>
         </select>
+    </div>
+
+     <div class="form-row">
+        <label for="node-input-dbAlias"><i class="icon-tag"></i>Database alias</label>
+        <input type="text" id="node-input-dbAlias" placeholder="Db alias">
     </div>
 
     <div class="form-row">
