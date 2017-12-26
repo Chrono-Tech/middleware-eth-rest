@@ -17,12 +17,12 @@ let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_COLLECTION_PREFIX || 'eth'
+      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
-      useData: parseInt(process.env.USE_MONGO_DATA) || 0
+      useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
   },
   rest: {
@@ -80,7 +80,6 @@ module.exports = (() => {
 
   if (config.mongo.data.useData)
     mongoose.data = mongoose.createConnection(config.mongo.data.uri);
-
 
   config.nodered.adminAuth = require('../controllers/nodeRedAuthController');
   config.nodered.storageModule = require('../controllers/nodeRedStorageController');
