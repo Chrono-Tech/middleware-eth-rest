@@ -5,6 +5,7 @@
     defaults: {
       model: {value: ""},
       request: {value: JSON.stringify({})},
+      options: {value: JSON.stringify({})},
       name: {value: 'mongo'},
       mode: {value: '1'},
       requestType: {value: '0'},
@@ -28,42 +29,73 @@
           $("#node-input-model").hide();
           $('label[for="node-input-model"]').hide();
 
+          $("#node-input-options-editor").hide();
+          $('label[for="node-input-options"]').hide();
+
         } else {
           $("#node-input-model").show();
           $('label[for="node-input-model"]').show();
 
           $("#node-input-request-editor").show();
           $('label[for="node-input-request"]').show();
+
+          $("#node-input-options-editor").show();
+          $('label[for="node-input-options"]').show();
         }
 
       });
 
-      this.editor = RED.editor.createEditor({
+      this.editorRequest = RED.editor.createEditor({
         id: 'node-input-request-editor',
         mode: 'ace/mode/javascript',
         value: $("#node-input-request").val()
       });
 
-      this.editor.focus();
+      this.editorOptions = RED.editor.createEditor({
+        id: 'node-input-options-editor',
+        mode: 'ace/mode/javascript',
+        value: $("#node-input-options").val()
+      });
+
+      this.editorRequest.focus();
+      this.editorOptions.focus();
     },
 
     oneditsave: function() {
-      let annot = this.editor.getSession().getAnnotations();
+      let annotRequest = this.editorRequest.getSession().getAnnotations();
       this.noerr = 0;
-      $("#node-input-noerr").val(0);
-      for (var k=0; k < annot.length; k++) {
-        if (annot[k].type === "error") {
-          $("#node-input-noerr").val(annot.length);
-          this.noerr = annot.length;
+      $("#node-input-noerr-request").val(0);
+      for (let k=0; k < annotRequest.length; k++) {
+        if (annotRequest[k].type === "error") {
+          $("#node-input-noerr-request").val(annotRequest.length);
+          this.noerr = annotRequest.length;
         }
       }
-      $("#node-input-request").val(this.editor.getValue());
-      this.editor.destroy();
-      delete this.editor;
+      $("#node-input-request").val(this.editorRequest.getValue());
+      this.editorRequest.destroy();
+      delete this.editorRequest;
+
+
+
+      let annotOptions = this.editorOptions.getSession().getAnnotations();
+      this.noerr = 0;
+      $("#node-input-noerr-options").val(0);
+      for (let k=0; k < annotOptions.length; k++) {
+        if (annotOptions[k].type === "error") {
+          $("#node-input-noerr-options").val(annotOptions.length);
+          this.noerr = annotOptions.length;
+        }
+      }
+      $("#node-input-options").val(this.editorOptions.getValue());
+      this.editorOptions.destroy();
+      delete this.editorOptions;
+
     },
     oneditcancel: function() {
-      this.editor.destroy();
-      delete this.editor;
+      this.editorRequest.destroy();
+      this.editorOptions.destroy();
+      delete this.editorRequest;
+      delete this.editorOptions;
     },
     oneditresize: function(size) {
       let rows = $("#dialog-form>div:not(.node-text-editor-row)");
@@ -74,7 +106,8 @@
       let editorRow = $("#dialog-form>div.node-text-editor-row");
       height -= (parseInt(editorRow.css("marginTop"))+parseInt(editorRow.css("marginBottom")));
       $(".node-text-editor").css("height",height+"px");
-      this.editor.resize();
+      this.editorRequest.resize();
+      this.editorOptions.resize();
     }
 
 
@@ -120,12 +153,26 @@
     <div class="form-row" style="margin-bottom: 0px;">
         <label for="node-input-request"><i class="icon-tag"></i>Request</label>
         <input type="hidden" id="node-input-request" autofocus="autofocus">
-        <input type="hidden" id="node-input-noerr">
+        <input type="hidden" id="node-input-noerr-request">
     </div>
 
     <div class="form-row node-text-editor-row">
         <div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-request-editor" ></div>
     </div>
+
+
+
+
+    <div class="form-row" style="margin-bottom: 0px;">
+        <label for="node-input-options"><i class="icon-tag"></i>Options</label>
+        <input type="hidden" id="node-input-options" autofocus="autofocus">
+        <input type="hidden" id="node-input-noerr-options">
+    </div>
+
+     <div class="form-row node-text-editor-row">
+        <div style="height: 250px; min-height:150px;" class="node-text-editor" id="node-input-options-editor" ></div>
+    </div>
+
 
 
 
