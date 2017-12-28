@@ -57,7 +57,13 @@ let config = {
           tx: require('../factories/messages/txMessageFactory')
         }
       },
-      'truffle-contract': require('truffle-contract')
+      'truffle-contract': require('truffle-contract'),
+      settings: {
+        mongo: {
+          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+        }
+      }
     },
     logging: {
       console: {

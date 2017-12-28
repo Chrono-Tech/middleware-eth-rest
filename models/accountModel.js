@@ -24,6 +24,11 @@ const Account = new mongoose.Schema({
     required: true,
     validate: [a=>  /^(0x)?[0-9a-fA-F]{40}$/.test(a), messages.wrongAddress]
   },
+  nem: { //todo refactor
+    type: String,
+    unique: true,
+    validate: [a=>  /^[0-9A-Z]{40}$/.test(a), messages.wrongAddress]
+  },
   balance: {type: mongoose.Schema.Types.Long, default: 0},
   created: {type: Date, required: true, default: Date.now},
   erc20token: {type: mongoose.Schema.Types.Mixed, default: {}},
