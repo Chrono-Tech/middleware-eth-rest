@@ -7,14 +7,12 @@ const config = require('./config'),
   express = require('express'),
   cors = require('cors'),
   path = require('path'),
-  Promise = require('bluebird'),
   mongoose = require('mongoose'),
   bunyan = require('bunyan'),
+  _ = require('lodash'),
   log = bunyan.createLogger({name: 'core.rest'}),
   RED = require('node-red'),
   http = require('http'),
-  NodeRedStorageModel = require('./models/nodeRedStorageModel'),
-  NodeRedUserModel = require('./models/nodeRedUserModel'),
   bodyParser = require('body-parser');
 
 require('require-all')({
@@ -22,20 +20,16 @@ require('require-all')({
   filter: /(.+Model)\.js$/
 });
 
-require('./utils/generateSMEvents')();
+if (config.mongo.data.useData)
+  require('./utils/generateSMEvents')();
 
-mongoose.Promise = Promise;
-mongoose.connect(config.mongo.uri, {useMongoClient: true});
-mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
-
-mongoose.red.model(NodeRedStorageModel.collection.collectionName, NodeRedStorageModel.schema);
-mongoose.red.model(NodeRedUserModel.collection.collectionName, NodeRedUserModel.schema);
-
-mongoose.connection.on('disconnected', function () {
-  log.error('mongo disconnected!');
-  process.exit(0);
-});
-
+_.chain([mongoose.accounts, mongoose.red, mongoose.data])
+  .compact().forEach(connection =>
+    connection.on('disconnected', function () {
+      log.error('mongo disconnected!');
+      process.exit(0);
+    })
+  ).value();
 
 const init = async () => {
 

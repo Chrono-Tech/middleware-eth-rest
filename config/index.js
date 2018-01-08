@@ -8,12 +8,22 @@ const path = require('path'),
   Web3 = require('web3'),
   bunyan = require('bunyan'),
   util = require('util'),
+  mongoose = require('mongoose'),
+  Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'core.rest'}),
   net = require('net');
 
 let config = {
   mongo: {
-    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/data'
+    accounts: {
+      uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+    },
+    data: {
+      uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+      useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
+    }
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
@@ -35,7 +45,6 @@ let config = {
     httpAdminRoot: '/admin',
     httpNodeRoot: '/',
     debugMaxLength: 1000,
-    adminAuth: require('../controllers/nodeRedAuthController'),
     nodesDir: path.join(__dirname, '../'),
     autoInstallModules: true,
     functionGlobalContext: {
@@ -48,9 +57,14 @@ let config = {
           tx: require('../factories/messages/txMessageFactory')
         }
       },
-      'truffle-contract': require('truffle-contract')
+      'truffle-contract': require('truffle-contract'),
+      settings: {
+        mongo: {
+          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+        }
+      }
     },
-    storageModule: require('../controllers/nodeRedStorageController'),
     logging: {
       console: {
         level: 'info',
@@ -65,6 +79,17 @@ let config = {
 };
 
 module.exports = (() => {
+
+  mongoose.Promise = Promise;
+  mongoose.red = mongoose.createConnection(config.nodered.mongo.uri);
+  mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+
+  if (config.mongo.data.useData)
+    mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+
+  config.nodered.adminAuth = require('../controllers/nodeRedAuthController');
+  config.nodered.storageModule = require('../controllers/nodeRedStorageController');
+
   let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
   config.nodered.functionGlobalContext.web3 = new Web3();
   config.nodered.functionGlobalContext.web3.setProvider(provider);
