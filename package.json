@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "amqp-ts": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
