@@ -51,7 +51,7 @@ module.exports = function (RED) {
     let node = this;
     RED.nodes.createNode(node, n);
     node.source = n.source;
-    node.topic = n.topic;
+    node.topic = _.template(n.topic)({config: config});
     node.ioType = n.iotype;
     node.noack = n.noack;
     node.ioName = n.ioname;
@@ -60,6 +60,7 @@ module.exports = function (RED) {
     node.server = RED.nodes.getNode(n.server);
     // set amqp node type initialization parameters
     node.amqpType = 'input';
+
     // node specific initialization code
     node.initialize = async function () {
       function Consume (msg) {
@@ -102,7 +103,10 @@ module.exports = function (RED) {
       node.on('input', async function (msg) {
         let message = msg.payload ? new amqp.Message(msg.payload, msg.options) :
           new amqp.Message(msg);
-        message.sendTo(node.exchange || node.queue, node.topic || msg.topic);
+
+        let topic = _.template(node.topic || msg.topic)({config: config});
+
+        message.sendTo(node.exchange || node.queue, topic);
       });
     };
     initialize(node);
@@ -158,7 +162,7 @@ module.exports = function (RED) {
     };
     node.freeConnection = function () {
       node.clientCount--;
-      if (node.clientCount === 0) 
+      if (node.clientCount === 0)
         node.connection.close().then(function () {
           node.connection = null;
           node.connectionPromise = null;
@@ -166,7 +170,7 @@ module.exports = function (RED) {
         }).catch(function (e) {
           node.error('AMQP-SERVER error closing connection: ' + e.message);
         });
-      
+
     };
   }
 
