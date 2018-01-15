@@ -13,8 +13,6 @@ before_install:
   - mongo data --eval 'db.dropDatabase();'
   - sudo apt-get update
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
-  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-
 
 install:
   - sudo rabbitmq-plugins enable rabbitmq_web_stomp
