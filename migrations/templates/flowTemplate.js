@@ -13,7 +13,7 @@ module.exports.up = function (done) {
   let coll = this.db.collection('noderedstorages');
   coll.update(${JSON.stringify({path: flow.path, type: 'flows'})}, {
     $set: ${JSON.stringify(flow)}
-  }, done);
+  }, {upsert: true}, done);
 };
 
 module.exports.down = function (done) {
