@@ -82,6 +82,18 @@ let config = {
   }
 };
 
+const initWeb3Provider = (web3) => {
+
+  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+  web3.setProvider(provider);
+  web3.currentProvider.connection.on('error', async () => {
+    log.error('restart ipc client');
+    await Promise.delay(5000);
+    initWeb3Provider(web3);
+  });
+
+};
+
 module.exports = (() => {
 
   mongoose.Promise = Promise;
@@ -94,12 +106,8 @@ module.exports = (() => {
   config.nodered.adminAuth = require('../controllers/nodeRedAuthController');
   config.nodered.storageModule = require('../controllers/nodeRedStorageController');
 
-  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+  //responseCallbacks
   config.nodered.functionGlobalContext.web3 = new Web3();
-  config.nodered.functionGlobalContext.web3.setProvider(provider);
-  config.nodered.functionGlobalContext.web3.currentProvider.connection.on('error', () => {
-    log.error('ipc process has finished!');
-    process.exit(0);
-  });
+  initWeb3Provider(config.nodered.functionGlobalContext.web3);
   return config;
 })();
