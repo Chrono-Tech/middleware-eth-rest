@@ -64,6 +64,19 @@ module.exports = function (RED) {
     // node specific initialization code
     node.initialize = async function () {
       function Consume (msg) {
+
+        msg.ackMsg = (...args)=>{
+          msg.ack(...args);
+        };
+
+        msg.nackMsg = (...args)=>{
+          msg.nack(...args);
+        };
+
+        msg.rejectMsg = (...args)=>{
+          msg.reject(...args);
+        };
+
         node.send({
           topic: node.topic || msg.fields.routingKey,
           payload: msg.getContent(),
