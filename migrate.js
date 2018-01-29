@@ -38,7 +38,9 @@ let migrator = new mm.Migrator({
 
 const init = async () => {
 
-  migrator.bulkAdd(migrations);
+  const filteredMigrations = _.sortBy(migrations, item=> parseInt(item.id.split('.')[0]));
+
+  migrator.bulkAdd(filteredMigrations);
   await Promise.promisifyAll(migrator).migrateAsync();
   migrator.dispose();
 };

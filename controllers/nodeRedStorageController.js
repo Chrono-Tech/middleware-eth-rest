@@ -51,9 +51,9 @@ let saveFlows = (blob) => {
       .groupBy('z')
       .toPairs()
       .map(pair => ({
-        path: pair[0] === 'undefined' ? 'tabs' : pair[0],
-        body: pair[1]
-      })
+          path: pair[0] === 'undefined' ? 'tabs' : pair[0],
+          body: pair[1]
+        })
       )
       .value();
 
@@ -69,7 +69,8 @@ let saveFlows = (blob) => {
 
         let newMigrationName = _.chain(migrations)
           .filter(m => m.id)
-          .sortBy('id').last()
+          .sortBy(item => parseInt(item.id.split('.')[0]))
+          .last()
           .get('id', 0).split('.').head().toNumber()
           .round().add(1)
           .add(`.${item.path}`).value();
