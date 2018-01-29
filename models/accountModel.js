@@ -31,6 +31,7 @@ const Account = new mongoose.Schema({
   },
   balance: {type: mongoose.Schema.Types.Long, default: 0},
   created: {type: Date, required: true, default: Date.now},
+  isActive: {type: Boolean, required: true, default: true},
   erc20token: {type: mongoose.Schema.Types.Mixed, default: {}},
   password: {type: String}
 });
