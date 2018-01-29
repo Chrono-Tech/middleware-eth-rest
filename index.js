@@ -4,50 +4,45 @@
  */
 
 const config = require('./config'),
-  express = require('express'),
-  cors = require('cors'),
-  path = require('path'),
   mongoose = require('mongoose'),
+  Promise = require('bluebird'),
+  path = require('path'),
   bunyan = require('bunyan'),
+  migrator = require('../middleware-service-sdk').migrator,
   _ = require('lodash'),
   log = bunyan.createLogger({name: 'core.rest'}),
-  RED = require('node-red'),
-  http = require('http'),
-  bodyParser = require('body-parser');
+  redInitter = require('../middleware-service-sdk').init;
 
-require('require-all')({
-  dirname: path.join(__dirname, '/models'),
-  filter: /(.+Model)\.js$/
-});
+mongoose.Promise = Promise;
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 
 if (config.mongo.data.useData)
-  require('./utils/generateSMEvents')();
+  mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
-_.chain([mongoose.accounts, mongoose.red, mongoose.data])
+_.chain([mongoose.accounts, mongoose.data])
   .compact().forEach(connection =>
-    connection.on('disconnected', function () {
-      log.error('mongo disconnected!');
-      process.exit(0);
-    })
-  ).value();
+  connection.on('disconnected', function () {
+    log.error('mongo disconnected!');
+    process.exit(0);
+  })
+).value();
 
 const init = async () => {
 
+  require('require-all')({
+    dirname: path.join(__dirname, '/models'),
+    filter: /(.+Model)\.js$/
+  });
+
+  if (config.mongo.data.useData)
+    require('./utils/generateSMEvents')();
+
+
   if (config.nodered.autoSyncMigrations)
-    await require('./migrate');
+    await migrator.run(config.nodered.mongo.uri, path.join(__dirname, 'migrations'));
 
-  let app = express();
-  let httpServer = http.createServer(app);
-  app.use(cors());
-  app.use(bodyParser.urlencoded({extended: false}));
-  app.use(bodyParser.json());
 
-  RED.init(httpServer, config.nodered);
-  app.use(config.nodered.httpAdminRoot, RED.httpAdmin);
-  app.use(config.nodered.httpNodeRoot, RED.httpNode);
-
-  httpServer.listen(config.rest.port);
-  RED.start();
+  redInitter(config);
 };
 
 module.exports = init();
