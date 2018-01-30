@@ -7,6 +7,7 @@ const config = require('./config'),
   express = require('express'),
   cors = require('cors'),
   path = require('path'),
+  Promise = require('bluebird'),
   mongoose = require('mongoose'),
   RED = require('node-red'),
   http = require('http'),
@@ -16,6 +17,8 @@ const config = require('./config'),
     dirname: path.join(__dirname, '/factories'),
     filter: /(.+Factory)\.js$/
   });
+
+mongoose.Promise = Promise;
 
 module.exports = {
   config: config,

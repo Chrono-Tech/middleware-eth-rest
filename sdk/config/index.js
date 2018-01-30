@@ -7,7 +7,6 @@ require('dotenv').config();
 const path = require('path'),
   bunyan = require('bunyan'),
   util = require('util'),
-  _ = require('lodash'),
   mongoose = require('mongoose'),
   log = bunyan.createLogger({name: 'core.rest'});
 
@@ -35,6 +34,7 @@ let config = {
     mongo: {
       uri: 'mongodb://localhost:27017/data'
     },
+    migrationsDir: path.join(__dirname, '../migrations'),
     adminAuth: require('../controllers/nodeRedAuthController'),
     storageModule: require('../controllers/nodeRedStorageController'),
     autoSyncMigrations: true,
@@ -52,10 +52,17 @@ let config = {
           tx: require('../factories/messages/txMessageFactory')
         }
       },
+      connections: {
+        red: mongoose
+      },
       settings: {
         mongo: {
           accountPrefix: 'sdk',
           collectionPrefix: 'sdk'
+        },
+        rabbit: {
+          url: 'amqp://localhost:5672',
+          serviceName: 'app_sdk'
         }
       }
     },

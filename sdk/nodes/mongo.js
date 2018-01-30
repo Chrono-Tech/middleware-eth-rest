@@ -4,23 +4,21 @@ const mongoose = require('mongoose'),
 
 module.exports = function (RED) {
 
-  async function query (type, modelName, query, options, dbAlias) {
-
-    let connection = mongoose[dbAlias] || mongoose.accounts;
+  async function query (type, model, query, options) {
 
     if (type === '0')
-      return await connection.models[modelName].find(query)
+      return await model.find(query)
         .sort(_.get(options, 'sort'))
         .skip(_.get(options, 'skip'))
         .limit(_.get(options, 'limit'));
     if (type === '1')
-      return await new connection.models[modelName](query).save();
+      return await new model(query).save();
     if (type === '2')
-      return await connection.models[modelName].update(...query);
+      return await model.update(...query);
     if (type === '3')
-      return await connection.models[modelName].remove(query);
+      return await model.remove(query);
     if (type === '4')
-      return await connection.models[modelName].aggregate(query);
+      return await model.aggregate(query);
 
     return [];
   }
@@ -28,9 +26,12 @@ module.exports = function (RED) {
   function MongoCall (redConfig) {
     RED.nodes.createNode(this, redConfig);
     let node = this;
+
+    const connection = _.get(node.context().global,`connections.${redConfig.dbAlias}`) || mongoose;
+
     this.on('input', async function (msg) {
 
-      let models = (mongoose[redConfig.dbAlias] || mongoose.accounts).modelNames();
+      let models = (connection).modelNames();
       let modelName = redConfig.mode === '1' ? msg.payload.model : redConfig.model;
       let origName = _.find(models, m => m.toLowerCase() === modelName.toLowerCase());
 
@@ -50,11 +51,12 @@ module.exports = function (RED) {
           msg.payload.options = scriptOptions.runInContext(contextOptions);
         }
 
-        msg.payload = JSON.parse(JSON.stringify(await query(redConfig.requestType, origName, msg.payload.request, msg.payload.options, redConfig.dbAlias)));
+        const result = await query(redConfig.requestType, connection.models[origName], msg.payload.request, msg.payload.options);
+        msg.payload = JSON.parse(JSON.stringify(result));
 
         node.send(msg);
       } catch (err) {
-        this.error(JSON.stringify(err), msg);
+        this.error(JSON.stringify(err.toString()), msg);
       }
 
     });

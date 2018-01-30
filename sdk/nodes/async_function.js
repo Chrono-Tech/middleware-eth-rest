@@ -216,7 +216,7 @@ module.exports = function (RED) {
           if (!errorMessage && stack)
             errorMessage = _.get(stack, 0, '');
 
-            this.error(errorMessage, msg);
+          this.error(errorMessage, msg);
         }
       });
       this.on('close', function () {

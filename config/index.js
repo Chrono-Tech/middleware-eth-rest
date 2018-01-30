@@ -10,6 +10,7 @@ const path = require('path'),
   Web3 = require('web3'),
   bunyan = require('bunyan'),
   Promise = require('bluebird'),
+  mongoose = require('mongoose'),
   log = bunyan.createLogger({name: 'core.rest'}),
   net = require('net');
 
@@ -25,10 +26,6 @@ let config = _.merge({}, middlewareSdkConfig, {
       useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
   },
-  rabbit: {
-    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
-  },
   web3: {
     network: process.env.NETWORK || 'development',
     uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
@@ -41,15 +38,23 @@ let config = _.merge({}, middlewareSdkConfig, {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
     nodesDir: [path.join(__dirname, '../'), path.join(__dirname, '../sdk')],
+    migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {
         sm: require('../factories/sc/smartContractsFactory')
       },
       'truffle-contract': require('truffle-contract'),
+      connections: {
+        primary: mongoose
+      },
       settings: {
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+        },
+        rabbit: {
+          url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
         }
       }
     }

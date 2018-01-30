@@ -6,6 +6,9 @@ const NodeRedStorageModel = require('../models/nodeRedStorageModel'),
   flowTemplate = require('../migrations/templates/flowTemplate'),
   path = require('path');
 
+
+let settings = {};
+
 let simpleLoad = (type, path, parse = true) => {
   return when.resolve((async () => {
     let storageDocument = await NodeRedStorageModel.findOne({type: type, path: path});
@@ -51,9 +54,9 @@ let saveFlows = (blob) => {
       .groupBy('z')
       .toPairs()
       .map(pair => ({
-          path: pair[0] === 'undefined' ? 'tabs' : pair[0],
-          body: pair[1]
-        })
+        path: pair[0] === 'undefined' ? 'tabs' : pair[0],
+        body: pair[1]
+      })
       )
       .value();
 
@@ -75,7 +78,7 @@ let saveFlows = (blob) => {
           .round().add(1)
           .add(`.${item.path}`).value();
 
-        await fs.writeFile(path.join(__dirname, '../migrations', `${newMigrationName.replace('.', '-')}.js`), flowTemplate(item, newMigrationName));
+        await fs.writeFile(path.join(settings.migrationsDir, `${newMigrationName.replace('.', '-')}.js`), flowTemplate(item, newMigrationName));
       }
 
       storageDocument.body = item.body;
@@ -142,7 +145,11 @@ let sortDocumentsIntoPaths = (documents) => {
 };
 
 const mongodb = {
-  init: () => when.resolve(), //thumb function
+  init: (globalSettings) => {
+    settings = globalSettings;
+    return when.resolve();
+
+  }, //thumb function
 
   getFlows: loadFlows,
 

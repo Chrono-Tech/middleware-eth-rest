@@ -3,13 +3,12 @@ require('dotenv').config();
 const mm = require('mongodb-migrations'),
   config = require('./config'),
   bunyan = require('bunyan'),
-  path = require('path'),
   _ = require('lodash'),
   requireAll = require('require-all'),
   Promise = require('bluebird'),
   log = bunyan.createLogger({name: 'migrator'});
 
-module.exports.run = async (uri = config.nodered.mongo.uri, folder = path.join(__dirname, 'migrations')) => {
+module.exports.run = async (uri = config.nodered.mongo.uri, folder = config.nodered.migrationsDir) => {
 
   const migrations = _.values(
     requireAll({
