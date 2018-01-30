@@ -7,7 +7,6 @@ require('dotenv').config();
 const path = require('path'),
   bunyan = require('bunyan'),
   util = require('util'),
-  _ = require('lodash'),
   mongoose = require('mongoose'),
   log = bunyan.createLogger({name: 'core.rest'});
 
@@ -52,10 +51,17 @@ let config = {
           tx: require('../factories/messages/txMessageFactory')
         }
       },
+      connections: {
+        red: mongoose
+      },
       settings: {
         mongo: {
           accountPrefix: 'sdk',
           collectionPrefix: 'sdk'
+        },
+        rabbit: {
+          url: 'amqp://localhost:5672',
+          serviceName: 'app_sdk'
         }
       }
     },
@@ -65,7 +71,7 @@ let config = {
         metrics: true,
         handler: () =>
           (msg) => {
-            log.info(util.inspect(msg, null, 3));
+           // log.info(util.inspect(msg, null, 3));
           }
       }
     }

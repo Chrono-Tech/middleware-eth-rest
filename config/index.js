@@ -10,6 +10,7 @@ const path = require('path'),
   Web3 = require('web3'),
   bunyan = require('bunyan'),
   Promise = require('bluebird'),
+  mongoose = require('mongoose'),
   log = bunyan.createLogger({name: 'core.rest'}),
   net = require('net');
 
@@ -24,10 +25,6 @@ let config = _.merge({}, middlewareSdkConfig, {
       collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
       useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
-  },
-  rabbit: {
-    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
   },
   web3: {
     network: process.env.NETWORK || 'development',
@@ -46,10 +43,17 @@ let config = _.merge({}, middlewareSdkConfig, {
         sm: require('../factories/sc/smartContractsFactory')
       },
       'truffle-contract': require('truffle-contract'),
+      connections: {
+        primary: mongoose
+      },
       settings: {
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+        },
+        rabbit: {
+          url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
         }
       }
     }

@@ -8,10 +8,10 @@ const config = require('./config'),
   Promise = require('bluebird'),
   path = require('path'),
   bunyan = require('bunyan'),
-  migrator = require('../middleware-service-sdk').migrator,
+  migrator = require('./sdk').migrator,
   _ = require('lodash'),
   log = bunyan.createLogger({name: 'core.rest'}),
-  redInitter = require('../middleware-service-sdk').init;
+  redInitter = require('./sdk').init;
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
