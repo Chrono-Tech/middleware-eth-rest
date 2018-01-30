@@ -21,11 +21,11 @@ if (config.mongo.data.useData)
 
 _.chain([mongoose.accounts, mongoose.data])
   .compact().forEach(connection =>
-  connection.on('disconnected', function () {
-    log.error('mongo disconnected!');
-    process.exit(0);
-  })
-).value();
+    connection.on('disconnected', function () {
+      log.error('mongo disconnected!');
+      process.exit(0);
+    })
+  ).value();
 
 const init = async () => {
 

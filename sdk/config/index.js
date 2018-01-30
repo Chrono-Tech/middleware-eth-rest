@@ -34,6 +34,7 @@ let config = {
     mongo: {
       uri: 'mongodb://localhost:27017/data'
     },
+    migrationsDir: path.join(__dirname, '../migrations'),
     adminAuth: require('../controllers/nodeRedAuthController'),
     storageModule: require('../controllers/nodeRedStorageController'),
     autoSyncMigrations: true,
@@ -71,7 +72,7 @@ let config = {
         metrics: true,
         handler: () =>
           (msg) => {
-           // log.info(util.inspect(msg, null, 3));
+            log.info(util.inspect(msg, null, 3));
           }
       }
     }

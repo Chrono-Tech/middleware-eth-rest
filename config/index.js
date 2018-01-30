@@ -38,6 +38,7 @@ let config = _.merge({}, middlewareSdkConfig, {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
     nodesDir: [path.join(__dirname, '../'), path.join(__dirname, '../sdk')],
+    migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {
         sm: require('../factories/sc/smartContractsFactory')
