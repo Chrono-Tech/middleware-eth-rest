@@ -5,7 +5,7 @@
  */
 require('dotenv').config();
 const path = require('path'),
-  middlewareSdkConfig = require('../sdk').config,
+  middlewareSdkConfig = require('middleware_service.sdk').config,
   _ = require('lodash'),
   Web3 = require('web3'),
   bunyan = require('bunyan'),
@@ -37,7 +37,7 @@ let config = _.merge({}, middlewareSdkConfig, {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
-    nodesDir: [path.join(__dirname, '../'), path.join(__dirname, '../sdk')],
+    customNodesDir: [path.join(__dirname, '../')],
     migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {

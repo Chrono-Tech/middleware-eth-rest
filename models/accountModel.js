@@ -7,7 +7,7 @@
 const mongoose = require('mongoose'),
   bcrypt = require('bcryptjs'),
   config = require('../config'),
-  messages = require('../../middleware-service-sdk').factories.messages.addressMessageFactory,
+  messages = require('middleware_service.sdk').factories.messages.addressMessageFactory,
   SALT_WORK_FACTOR = 10;
 
 require('mongoose-long')(mongoose);

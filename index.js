@@ -8,10 +8,10 @@ const config = require('./config'),
   Promise = require('bluebird'),
   path = require('path'),
   bunyan = require('bunyan'),
-  migrator = require('./sdk').migrator,
+  migrator = require('middleware_service.sdk').migrator,
   _ = require('lodash'),
   log = bunyan.createLogger({name: 'core.rest'}),
-  redInitter = require('./sdk').init;
+  redInitter = require('middleware_service.sdk').init;
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
@@ -40,7 +40,6 @@ const init = async () => {
 
   if (config.nodered.autoSyncMigrations)
     await migrator.run(config.nodered.mongo.uri, path.join(__dirname, 'migrations'));
-
 
   redInitter(config);
 };
