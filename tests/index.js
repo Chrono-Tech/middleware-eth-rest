@@ -39,7 +39,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
           request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
-            err || resp.statusCode !== 200 ? rej(err) : res()
+            err || resp.statusCode !== 200 ? rej(err || resp) : res()
           })
         })
       )
@@ -57,7 +57,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           address: ctx.address
         }
       }, (err, resp) => {
-        err || resp.statusCode !== 200 ? rej(err) : res()
+        err || resp.statusCode !== 200 ? rej(err || resp) : res()
       })
     });
 
