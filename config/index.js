@@ -5,8 +5,6 @@
  */
 require('dotenv').config();
 const path = require('path'),
-  middlewareSdkConfig = require('../sdk').config,
-  _ = require('lodash'),
   Web3 = require('web3'),
   bunyan = require('bunyan'),
   Promise = require('bluebird'),
@@ -14,7 +12,7 @@ const path = require('path'),
   log = bunyan.createLogger({name: 'core.rest'}),
   net = require('net');
 
-let config = _.merge({}, middlewareSdkConfig, {
+let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
@@ -30,6 +28,11 @@ let config = _.merge({}, middlewareSdkConfig, {
     network: process.env.NETWORK || 'development',
     uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
   },
+  rest: {
+    domain: process.env.DOMAIN || 'localhost',
+    port: parseInt(process.env.REST_PORT) || 8081,
+    auth: process.env.USE_AUTH || false
+  },
   smartContracts: {
     path: process.env.SMART_CONTRACTS_PATH || path.join(__dirname, '../node_modules/chronobank-smart-contracts/build/contracts')
   },
@@ -37,7 +40,8 @@ let config = _.merge({}, middlewareSdkConfig, {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data'
     },
-    nodesDir: [path.join(__dirname, '../'), path.join(__dirname, '../sdk')],
+    autoSyncMigrations: process.env.NODERED_AUTO_SYNC_MIGRATIONS || true,
+    customNodesDir: [path.join(__dirname, '../')],
     migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {
@@ -59,7 +63,7 @@ let config = _.merge({}, middlewareSdkConfig, {
       }
     }
   }
-});
+};
 
 const initWeb3Provider = (web3) => {
 
