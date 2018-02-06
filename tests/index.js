@@ -5,6 +5,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const config = require('../config'),
   mongoose = require('mongoose'),
+  Promise = require('bluebird'),
   expect = require('chai').expect,
   _ = require('lodash'),
   require_all = require('require-all'),
@@ -13,11 +14,15 @@ const config = require('../config'),
     dirname: _.nth(require.resolve('chronobank-smart-contracts/build/contracts/MultiEventsHistory').match(/.+(?=MultiEventsHistory)/), 0),
     filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/,
     resolve: Contract => contract(Contract)
-  }),
-  Web3 = require('web3'),
+  });
+
+mongoose.Promise = Promise;
+mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
+mongoose.data = mongoose.createConnection(config.mongo.data.uri);
+
+const Web3 = require('web3'),
   web3 = new Web3(),
   accountModel = require('../models/accountModel'),
-  Promise = require('bluebird'),
   request = require('request'),
   moment = require('moment'),
   smEvents = require('../utils/generateSMEvents')(),
@@ -34,7 +39,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
           request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
-            err || resp.statusCode !== 200 ? rej(err) : res()
+            err || resp.statusCode !== 200 ? rej(err || resp) : res()
           })
         })
       )
@@ -52,7 +57,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           address: ctx.address
         }
       }, (err, resp) => {
-        err || resp.statusCode !== 200 ? rej(err) : res()
+        err || resp.statusCode !== 200 ? rej(err || resp) : res()
       })
     });
 
