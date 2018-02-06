@@ -7,11 +7,15 @@ RUN apt update && \
     npm install -g pm2@2.7.1 && \
     mkdir /app
 WORKDIR /app
+
+RUN mkdir src
+COPY . src/middleware-eth-rest
+RUN cd src/middleware-eth-rest && npm install
+
 RUN npm install -g chronobank-middleware --unsafe
-RUN mkdir src && cd src && \
+RUN cd src && \
     dmt init && \
     dmt install middleware-eth-blockprocessor \
-    middleware-eth-rest \
     middleware-eth-chrono-sc-processor \
     middleware-eth-balance-processor \
     middleware-eth-ipfs \
