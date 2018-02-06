@@ -8,9 +8,9 @@ RUN apt update && \
     mkdir /app
 WORKDIR /app
 
-RUN mkdir src
-COPY . src/middleware-eth-rest
-RUN cd src/middleware-eth-rest && npm install
+RUN mkdir src && mkdir src/core
+COPY . src/core/middleware-eth-rest
+RUN cd src/core/middleware-eth-rest && npm install
 
 RUN npm install -g chronobank-middleware --unsafe
 RUN cd src && \
