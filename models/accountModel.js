@@ -26,7 +26,6 @@ const Account = new mongoose.Schema({
   },
   nem: { //todo refactor
     type: String,
-    unique: true,
     validate: [a=>  /^[0-9A-Z]{40}$/.test(a), messages.wrongAddress]
   },
   balance: {type: mongoose.Schema.Types.Long, default: 0},
