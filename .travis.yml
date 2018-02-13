@@ -19,7 +19,6 @@ install:
   - sudo rabbitmq-plugins enable rabbitmq_web_stomp
   - npm install
   - npm install -g pm2
-  - npm run migrate_red mongodb://127.0.0.1:27017 migrations
 
 before_script:
     - cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && npm install
