@@ -316,7 +316,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
     
 
-    // await Promise.delay(5000);
+    await Promise.delay(10000);
 
     const query = `limit=1`;
 
