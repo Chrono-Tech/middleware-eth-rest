@@ -71,8 +71,8 @@ describe('core/rest', function () { //todo add integration tests for query, push
       await clearQueues(amqpInstance);
   });
 
-  it('validate all event routes', () =>
-    Promise.all(
+  it('validate all event routes', async() => {
+    await Promise.all(
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
           request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
@@ -80,8 +80,14 @@ describe('core/rest', function () { //todo add integration tests for query, push
           })
         })
       )
-    )
-  );
+    );
+    await Promise.promisify(web3.eth.sendTransaction)({
+      from: accounts[1],
+      to: accounts[0],
+      value: 100
+    });
+    await Promise.delay(2000);
+  });
 
   it('address/create from post request', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
