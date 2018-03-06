@@ -115,7 +115,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         const info = {address: newAddress};
         await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
     
-        await Promise.delay(1000);
+        await Promise.delay(3000);
     
         const account = await getAccountFromMongo(newAddress);
         expect(account).not.to.be.null;
@@ -138,7 +138,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const info = {address: accounts[0]};
     await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
 
-    await Promise.delay(1000);
+    await Promise.delay(3000);
 
     const account = await getAccountFromMongo(accounts[0]);
     expect(account).not.to.be.null;
@@ -174,7 +174,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         const info = {address: removeAddress};
         await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
     
-        await Promise.delay(1000);
+        await Promise.delay(3000);
     
         const account = await getAccountFromMongo(removeAddress);
         expect(account).not.to.be.null;
@@ -183,7 +183,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       (async () => {
         const channel = await amqpInstance.createChannel();
         await connectToQueue(channel, `${config.rabbit.serviceName}.account.removed`);
-        await consumeMessages(1, channel, (message) => {
+        return await consumeMessages(1, channel, (message) => {
           const content = JSON.parse(message.content);
           expect(content.address).to.be.equal(removeAddress);
         })
