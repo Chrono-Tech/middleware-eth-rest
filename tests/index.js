@@ -81,12 +81,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
         })
       )
     );
-    await Promise.promisify(web3.eth.sendTransaction)({
-      from: accounts[1],
-      to: accounts[0],
-      value: 100
-    });
-    await Promise.delay(2000);
   });
 
   it('address/create from post request', async () => {
@@ -115,8 +109,8 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);    
 
-    await Promise.all([
-      (async () => {
+    // await Promise.all([
+    //   (async () => {
         const channel = await amqpInstance.createChannel();
         const info = {address: newAddress};
         await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
@@ -127,16 +121,16 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(account).not.to.be.null;
         expect(account.isActive).to.be.true;
         expect(account.balance.toNumber()).to.be.equal(0);
-      })(),
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
-        await consumeMessages(1, channel,`${config.rabbit.serviceName}.account.created`,  (message) => {
-            const content = JSON.parse(message.content);
-            expect(content.address).to.be.equal(newAddress);
-        })
-      })()
-    ]);
+      // })(),
+      // (async () => {
+      //   const channel = await amqpInstance.createChannel();
+      //   await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
+      //   await consumeMessages(1, channel,`${config.rabbit.serviceName}.account.created`,  (message) => {
+      //       const content = JSON.parse(message.content);
+      //       expect(content.address).to.be.equal(newAddress);
+      //   })
+      // })()
+    // ]);
   });
 
   it('address/update balance address by amqp', async() => {
@@ -311,7 +305,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       value: 10
     });
 
-    await Promise.delay(3000);
+    await Promise.delay(5000);
 
     const query = `limit=1`;
 
@@ -335,7 +329,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
             expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
             res();            
           } catch (e) {
-            console.log(resp);
             rej(e || resp);
           }
       });
