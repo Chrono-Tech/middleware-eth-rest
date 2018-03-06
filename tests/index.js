@@ -39,26 +39,30 @@ const Web3 = require('web3'),
   createTestEvents = require('./helpers/createTestEvents'),
   getEventFromSmEvents = require('./helpers/getEventFromSmEvents');
 
-let accounts, exampleEventModels = [];
+let accounts, testEvModel;
 
 describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
 
   before(async () => {
-    await clearMongoAccounts();
     amqpInstance = await amqp.connect(config.rabbit.url);
+    await clearQueues(amqpInstance);
+    
     let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
     web3.setProvider(provider);
 
     accounts = await Promise.promisify(web3.eth.getAccounts)();
+    await clearMongoAccounts();    
     await saveAccountForAddress(accounts[0]);
-    await clearQueues(amqpInstance);
+
+    testEvModel = getEventFromSmEvents(smEvents, 5); 
+    await testEvModel.remove();
+    await createTestEvents(testEvModel);
   });
 
   after(async () => {
     await clearMongoAccounts();
-    await Promise.map(exampleEventModels, async (event) => {
-        return await event.remove();
-    }); 
+    await testEvModel.remove();    
+
     web3.currentProvider.connection.end();
     return mongoose.disconnect();
   });
@@ -371,31 +375,31 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
 
-  it('POST sc', async () => {
-    const address = accounts[0];
+  // it('POST sc', async () => {
+  //   const address = accounts[0];
 
 
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/sc`,
-        form: {'from': address},
-        method: 'POST',
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
+  //   await new Promise((res, rej) => {
+  //     request({
+  //       url: `http://localhost:${config.rest.port}/sc`,
+  //       form: {from: address, args: [accounts[1]]},
+  //       method: 'POST',
+  //     }, async(err, resp) => {
+  //         if (err || resp.statusCode !== 200) {
+  //           return rej(err || resp)
+  //         }
 
-          const body = JSON.parse(resp.body);
-          expect(body).to.be.an('object');
-          console.log(body);
-          expect(body.txParams).to.be.an('object').contain.all.keys([
-            'nonce', 'gasPrice', 'gasLimit', 'to', 'value', 'data'
-          ]);
-          expect(body.call).to.be.not.undefined;
-          res();
-      });
-    });
-  });
+  //         const body = JSON.parse(resp.body);
+  //         console.log(body);
+  //         expect(body).to.be.an('object');
+  //         expect(body.txParams).to.be.an('object').contain.all.keys([
+  //           'nonce', 'gasPrice', 'gasLimit', 'to', 'value', 'data'
+  //         ]);
+  //         expect(body.call).to.be.not.undefined;
+  //         res();
+  //     });
+  //   });
+  // });
 
 
   it('GET events/:name - check routes for all events by name event', () =>
@@ -444,67 +448,64 @@ describe('core/rest', function () { //todo add integration tests for query, push
       });
   });
 
-  // it('GET events/:name - check query language - get some  results', async () => {
-  //   const exampleEventModel = createTestEvents(mongoose);
-  //   exampleEventModels.push(exampleEventModel);
+  it('GET events/:name - check query language - get some  results', async () => {
+    const query = `created>${moment().add(-1, 'hours').toISOString()}&` +
+      `limit=2&sort=_id&offset=1`
 
-
-  //   const query = `created>${moment().add(-20, 'minutes').toISOString()}&limit=2`
-
-  //   return await new Promise((res, rej) => {
-  //       request({
-  //         url: `http://localhost:${config.rest.port}/events/${exampleEventModel.modelName}?${query}`,
-  //         method: 'GET'
-  //       }, async(err, resp) => {
-  //           if (err || resp.statusCode !== 200) {
-  //             return rej(err || resp)
-  //           }
-  //           const body = JSON.parse(resp.body);
-  //           expect(body).to.be.an('array');
-  //           expect(body).has.length.to.equal(2);
-
-  //           const eventOne = body[0];
-  //           expect(eventOne).has.contain.keys([
-  //             'created', 'network', 'controlIndexHash','code'
-  //           ]);
-  //           expect(eventOne).oneOf([446,447,448]);
-
-  //           const eventTwo = body[1];
-  //           expect(eventTwo).has.contain.keys([
-  //             'created', 'network', 'controlIndexHash','code'
-  //           ]);
-  //           expect(eventTwo).oneOf([446,447,448]);
+    return await new Promise((res, rej) => {
+        request({
+          url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+          method: 'GET'
+        }, async(err, resp) => {
+            if (err || resp.statusCode !== 200) {
+              return rej(err || resp)
+            }
+            const body = JSON.parse(resp.body);
+            expect(body).to.be.an('array');
+            expect(body.length).to.equal(2);
             
-  //           res();
-  //       });
-  //     });
-  // });
+            const eventOne = body[0];
+            expect(eventOne.controlIndexHash).to.equal('647');
+            expect(eventOne).has.contain.keys([
+              'created', 'controlIndexHash'
+            ]);
 
-  // it('GET events/:name - check query language - get one result', async () => {
+            const eventTwo = body[1];
+            expect(eventTwo.controlIndexHash).to.equal('648');
+            expect(eventTwo).has.contain.keys([
+              'created', 'controlIndexHash'
+            ]);
+            
+            res();
+        });
+      });
+  });
 
-  //   const query = `code=448&created>${moment().add(-20, 'minutes').toISOString()}`
+  it('GET events/:name - check query language - get one result', async () => {
 
-  //   return await new Promise((res, rej) => {
-  //       request({
-  //         url: `http://localhost:${config.rest.port}/events/${exampleEventModel.modelName}?${query}`,
-  //         method: 'GET'
-  //       }, async(err, resp) => {
-  //           if (err || resp.statusCode !== 200) {
-  //             return rej(err || resp)
-  //           }
-  //           const body = JSON.parse(resp.body);
-  //           expect(body).to.be.an('array');
-  //           expect(body).has.length.to.equal(1);
-  //           const event = body[0];
-  //           expect(event).has.contain.keys([
-  //             'created', 'network', 'controlIndexHash','code'
-  //           ]);
-  //           expect(event.code).to.equal(448);
+    const query = `controlIndexHash=647`;
 
-  //           res();
-  //       });
-  //     });
-  // });
+    return await new Promise((res, rej) => {
+        request({
+          url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+          method: 'GET'
+        }, async(err, resp) => {
+            if (err || resp.statusCode !== 200) {
+              return rej(err || resp)
+            }
+            const body = JSON.parse(resp.body);
+            expect(body).to.be.an('array');
+            expect(body.length).to.equal(1);
+            const event = body[0];
+            expect(event).has.contain.keys([
+              'created', 'controlIndexHash'
+            ]);
+            expect(event.controlIndexHash).to.equal('647');
+
+            res();
+        });
+      });
+  });
 
   // it('POST sc/broadcast', async () => {
   //   const address = accounts[0];
