@@ -299,11 +299,21 @@ describe('core/rest', function () { //todo add integration tests for query, push
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
     const address = accounts[0];
 
-    // exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
-    //   from: accounts[0],
-    //   to: accounts[1],
-    //   value: 10
-    // });
+    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
+      from: accounts[0],
+      to: accounts[1],
+      value: 10
+    });
+    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
+      from: accounts[0],
+      to: accounts[1],
+      value: 10
+    });
+    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
+      from: accounts[1],
+      to: accounts[0],
+      value: 10
+    });
     
 
     // await Promise.delay(5000);
@@ -320,12 +330,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
           }
 
           try {
-            expect(resp.body).to.be.empty;            
-            // expect(resp.body).to.not.be.empty;
-            // const body = JSON.parse(resp.body);
-            // expect(body).to.be.an('array').not.empty;
+            expect(resp.body).to.not.be.empty;
+            const body = JSON.parse(resp.body);
+            expect(body).to.be.an('array').not.empty;
 
-            // const respTx = body[0];
+            const respTx = body[0];
+            expect(respTx).to.contain.all.keys(['to', 'from','hash', 'blockNumber', 'blockHash', 'timestamp']);
             // expect(respTx.to).to.equal(accounts[1]);
             // expect(respTx.from).to.equal(accounts[0]);
             // expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
@@ -375,9 +385,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
           }
 
           const respTx = JSON.parse(resp.body);
-          expect(respTx.to).to.equal(accounts[1]);
-          expect(respTx.from).to.equal(accounts[0]);
-          expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash']);
+          //expect(respTx.to).to.equal(accounts[1]);
+          //expect(respTx.from).to.equal(accounts[0]);
+          expect(respTx).to.contain.all.keys(['to', 'from', 'hash', 'blockNumber', 'blockHash']);
           res();
       });
     });
