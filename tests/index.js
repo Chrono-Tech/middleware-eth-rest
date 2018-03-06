@@ -304,19 +304,26 @@ describe('core/rest', function () { //todo add integration tests for query, push
       to: accounts[1],
       value: 10
     });
-    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
-      from: accounts[0],
-      to: accounts[1],
-      value: 10
-    });
-    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
-      from: accounts[1],
-      to: accounts[0],
-      value: 10
-    });
-    
 
-    await Promise.delay(10000);
+    await new blockModel({
+      number: 1,
+      'hash': 1,
+      'timestamp': 0,
+      'transactions': [
+        {
+          "hash" : "0x80bda62321ed94cd84a50f541d9bfb986cea28de064eca039d19300762c956a2",
+          "nonce" : 12,
+          "transactionIndex" : 0,
+          "from" : accounts[0],
+          "to": accounts[1],
+          "value" : "90",
+          "gas" : 90000,
+          "gasPrice" : "1",
+          "input" : "0x0",
+          "logs" : []
+        }
+      ]
+    }).save();
 
     const query = `limit=1`;
 
@@ -335,10 +342,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
             expect(body).to.be.an('array').not.empty;
 
             const respTx = body[0];
-            expect(respTx).to.contain.all.keys(['to', 'from','hash', 'blockNumber', 'blockHash', 'timestamp']);
-            // expect(respTx.to).to.equal(accounts[1]);
-            // expect(respTx.from).to.equal(accounts[0]);
-            // expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
+            expect(respTx.to).to.equal(accounts[1]);
+            expect(respTx.from).to.equal(accounts[0]);
+            expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
             res();            
           } catch (e) {
             rej(e || resp);
