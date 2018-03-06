@@ -79,6 +79,8 @@ const initWeb3Provider = (web3) => {
 };
 
 module.exports = (() => {
+  //for easy tests
+  config.rabbit = config.nodered.functionGlobalContext.settings.rabbit;
 
   config.nodered.functionGlobalContext.web3 = new Web3();
   initWeb3Provider(config.nodered.functionGlobalContext.web3);
