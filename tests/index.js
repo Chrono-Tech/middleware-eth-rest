@@ -125,9 +125,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
       (async () => {
         const channel = await amqpInstance.createChannel();
         await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
-        await consumeMessages(1, channel, (message) => {
-          const content = JSON.parse(message.content);
-          expect(content.address).to.be.equal(newAddress);
+        await consumeMessages(1, channel,`${config.rabbit.serviceName}.account.created`,  (message) => {
+            const content = JSON.parse(message.content);
+            expect(content.address).to.be.equal(newAddress);
         })
       })()
     ]);
@@ -182,14 +182,14 @@ describe('core/rest', function () { //todo add integration tests for query, push
       })(),
       (async () => {
         const channel = await amqpInstance.createChannel();
-        await connectToQueue(channel, `${config.rabbit.serviceName}.account.removed`);
-        return await consumeMessages(1, channel, (message) => {
+        await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
+        return await consumeMessages(1, channel, `${config.rabbit.serviceName}.account.deleted`, (message) => {
           const content = JSON.parse(message.content);
           expect(content.address).to.be.equal(removeAddress);
         })
       })()
     ]);
-  });
+ });
 
   const tokenForErc20 = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
   
@@ -326,7 +326,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           expect(respTx.from).to.equal(accounts[0]);
           expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
           res();
-      });
+      }).catch(rej);
     });
   });
 
