@@ -360,7 +360,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
       request({
         url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
         method: 'GET',
-      }, async(err, resp) => {
+      }, (err, resp) => {
           if (err || resp.statusCode !== 200) {
             return rej(err || resp)
           }
