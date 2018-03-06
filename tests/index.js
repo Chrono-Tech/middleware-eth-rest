@@ -302,7 +302,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
       from: accounts[0],
       to: accounts[1],
-      value: 100
+      value: 10
     });
 
     await Promise.delay(3000);
@@ -319,6 +319,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           }
 
           try {
+            expect(resp.body).to.not.be.empty;
             const body = JSON.parse(resp.body);
             expect(body).to.be.an('array').not.empty;
 
@@ -328,6 +329,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
             expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
             res();            
           } catch (e) {
+            console.log(resp);
             rej(e || resp);
           }
       });
