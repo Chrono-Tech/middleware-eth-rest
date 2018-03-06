@@ -318,15 +318,19 @@ describe('core/rest', function () { //todo add integration tests for query, push
             return rej(err || resp)
           }
 
-          const body = JSON.parse(resp.body);
-          expect(body).to.be.an('array').not.empty;
+          try {
+            const body = JSON.parse(resp.body);
+            expect(body).to.be.an('array').not.empty;
 
-          const respTx = body[0];
-          expect(respTx.to).to.equal(accounts[1]);
-          expect(respTx.from).to.equal(accounts[0]);
-          expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
-          res();
-      }).catch(rej);
+            const respTx = body[0];
+            expect(respTx.to).to.equal(accounts[1]);
+            expect(respTx.from).to.equal(accounts[0]);
+            expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
+            res();            
+          } catch (e) {
+            rej(e || resp);
+          }
+      });
     });
   });
 
