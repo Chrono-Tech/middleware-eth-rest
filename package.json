@@ -5,6 +5,7 @@
   "dependencies": {
     "middleware_service.sdk": "github:chronobank/middleware-service-sdk",
     "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.1",
     "body-parser": "^1.18.1",
     "bunyan": "^1.8.12",
     "chronobank-smart-contracts": "^1.1.*",
@@ -30,6 +31,7 @@
     "eslint": "^4.6.1",
     "eslint-plugin-chronobank": "github:chronobank/eslint-plugin-chronobank",
     "middleware-eth-blockprocessor": "github:chronobank/middleware-eth-blockprocessor",
-    "mocha": "^3.5.0"
+    "mocha": "^3.5.0",
+    "moment": "^2.21.0"
   }
 }
