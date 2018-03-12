@@ -22,21 +22,24 @@ if (fs.existsSync(config.smartContracts.path))
 module.exports = () => {
 
   return _.chain(contracts)
-    .map(value => //fetch all events
-      _.chain(value).get('abi')
-        .filter({type: 'event'})
-        .value()
-    )
-    .flatten()
+    .toPairs()
+    .map(pair => pair[1].events)
+    .transform((result, ev) => _.merge(result, ev))
+    .toPairs()
+    .map(pair => ({
+      address: pair[0],
+      inputs: pair[1].inputs,
+      name: pair[1].name
+    }))
     .groupBy('name')
     .map(ev => ({
-      name: ev[0].name,
-      inputs: _.chain(ev)
-        .map(ev => ev.inputs)
-        .flattenDeep()
-        .uniqBy('name')
-        .value()
-    })
+        name: ev[0].name,
+        inputs: _.chain(ev)
+          .map(ev => ev.inputs)
+          .flattenDeep()
+          .uniqBy('name')
+          .value()
+      })
     )
     .transform((result, ev) => { //build mongo model, based on event definition from abi
       result[ev.name] = mongoose.data.model(ev.name, new mongoose.Schema(
