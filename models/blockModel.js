@@ -1,4 +1,10 @@
 /**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Egor Zuev <zyev.egor@gmail.com>
+ */
+
+/**
  * Mongoose model. Represents a block in eth
  * @module models/blockModel
  * @returns {Object} Mongoose model
@@ -10,25 +16,8 @@ const mongoose = require('mongoose'),
 const Block = new mongoose.Schema({
   number: {type: Number, unique: true, index: true},
   hash: {type: String, unique: true, index: true},
-  transactions: [{
-    value: {type: String},
-    transactionIndex: {type: Number},
-    to: {type: String, index: true},
-    nonce: {type: Number},
-    input: {type: String},
-    hash: {type: String, index: true},
-    gasPrice: {type: String},
-    gas: {type: Number},
-    from: {type: String, index: true},
-    logs: [{
-      removed: {type: Boolean},
-      logIndex: {type: Number},
-      data: {type: String},
-      topics: {type: Array, index: true, default: []},
-      address: {type: String, index: true}
-    }]
-  }],
-  network: {type: String},
+  timestamp: {type: Number, required: true, index: true},
+  network: {type: String, index: true},
   created: {type: Date, required: true, default: Date.now}
 });
 
