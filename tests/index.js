@@ -1,3 +1,9 @@
+/**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Egor Zuev <zyev.egor@gmail.com>
+ */
+
 require('dotenv/config');
 
 process.env.USE_MONGO_DATA = 1;
@@ -9,13 +15,7 @@ const config = require('../config'),
   expect = require('chai').expect,
   _ = require('lodash'),
   require_all = require('require-all'),
-  contract = require('truffle-contract'),
-  contracts = require_all({
-    dirname: _.nth(require.resolve('chronobank-smart-contracts/build/contracts/MultiEventsHistory').match(/.+(?=MultiEventsHistory)/), 0),
-    filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/,
-    resolve: Contract => contract(Contract)
-  });
-
+  contract = require('truffle-contract');
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
@@ -23,12 +23,8 @@ mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
 const Web3 = require('web3'),
   web3 = new Web3(),
-  accountModel = require('../models/accountModel'),
-  blockModel = require('../models/blockModel'),
   clearMongoAccounts = require('./helpers/clearMongoAccounts'),
   clearQueues = require('./helpers/clearQueues'),
-  connectToQueue = require('./helpers/connectToQueue'),
-  consumeMessages = require('./helpers/consumeMessages'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
   request = require('request'),
@@ -39,39 +35,39 @@ const Web3 = require('web3'),
   createTestEvents = require('./helpers/createTestEvents'),
   getEventFromSmEvents = require('./helpers/getEventFromSmEvents');
 
-let accounts, testEvModel;
+let accounts, testEvModel, amqpInstance;
 
 describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
 
   before(async () => {
     amqpInstance = await amqp.connect(config.rabbit.url);
     await clearQueues(amqpInstance);
-    
+
     let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
     web3.setProvider(provider);
 
     accounts = await Promise.promisify(web3.eth.getAccounts)();
-    await clearMongoAccounts();    
+    await clearMongoAccounts();
     await saveAccountForAddress(accounts[0]);
 
-    testEvModel = getEventFromSmEvents(smEvents, 5); 
+    testEvModel = getEventFromSmEvents(smEvents, 5);
     await testEvModel.remove();
     await createTestEvents(testEvModel);
   });
 
   after(async () => {
     await clearMongoAccounts();
-    await testEvModel.remove();    
+    await testEvModel.remove();
 
     web3.currentProvider.connection.end();
     return mongoose.disconnect();
   });
 
   afterEach(async () => {
-      await clearQueues(amqpInstance);
+    await clearQueues(amqpInstance);
   });
 
-  it('validate all event routes', async() => {
+  it('validate all event routes', async () => {
     await Promise.all(
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
@@ -92,48 +88,36 @@ describe('core/rest', function () { //todo add integration tests for query, push
         url: `http://localhost:${config.rest.port}/addr/`,
         method: 'POST',
         json: {address: newAddress}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          const account = await getAccountFromMongo(newAddress);
-          expect(account).not.to.be.null;
-          expect(account.isActive).to.be.true;
-          expect(account.balance.toNumber()).to.be.equal(0);
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+
+        const account = await getAccountFromMongo(newAddress);
+        expect(account).not.to.be.null;
+        expect(account.isActive).to.be.true;
+        expect(account.balance.toNumber()).to.be.equal(0);
+        res();
       });
     });
   });
 
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);    
+    accounts.push(newAddress);
 
-    // await Promise.all([
-    //   (async () => {
-        const channel = await amqpInstance.createChannel();
-        const info = {address: newAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(3000);
-    
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.toNumber()).to.be.equal(0);
-      // })(),
-      // (async () => {
-      //   const channel = await amqpInstance.createChannel();
-      //   await connectToQueue(channel, `${config.rabbit.serviceName}.account.created`);
-      //   await consumeMessages(1, channel,`${config.rabbit.serviceName}.account.created`,  (message) => {
-      //       const content = JSON.parse(message.content);
-      //       expect(content.address).to.be.equal(newAddress);
-      //   })
-      // })()
-    // ]);
+    const channel = await amqpInstance.createChannel();
+    const info = {address: newAddress};
+    await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(3000);
+
+    const account = await getAccountFromMongo(newAddress);
+    expect(account).not.to.be.null;
+    expect(account.isActive).to.be.true;
+    expect(account.balance.toNumber()).to.be.equal(0);
   });
 
-  it('address/update balance address by amqp', async() => {
+  it('address/update balance address by amqp', async () => {
     const channel = await amqpInstance.createChannel();
     const info = {address: accounts[0]};
     await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
@@ -146,53 +130,40 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];
+    const removeAddress = _.pullAt(accounts, accounts.length - 1)[0];
 
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/addr/`,
         method: 'DELETE',
         json: {address: removeAddress}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          const account = await getAccountFromMongo(removeAddress);
-          expect(account).not.to.be.null;
-          expect(account.isActive).to.be.false;
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) {
+          return rej(err || resp);
+        }
+        const account = await getAccountFromMongo(removeAddress);
+        expect(account).not.to.be.null;
+        expect(account.isActive).to.be.false;
+        res();
       });
     });
   });
 
   it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length-1)[0];    
+    const removeAddress = _.pullAt(accounts, accounts.length - 1)[0];
 
-    // await Promise.all([
-    //   (async () => {
-        const channel = await amqpInstance.createChannel();
-        const info = {address: removeAddress};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
-    
-        await Promise.delay(3000);
-    
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-    //   })(),
-    //   (async () => {
-    //     const channel = await amqpInstance.createChannel();
-    //     await connectToQueue(channel, `${config.rabbit.serviceName}.account.deleted`);
-    //     return await consumeMessages(1, channel, `${config.rabbit.serviceName}.account.deleted`, (message) => {
-    //       const content = JSON.parse(message.content);
-    //       expect(content.address).to.be.equal(removeAddress);
-    //     })
-    //   })()
-    // ]);
- });
+    const channel = await amqpInstance.createChannel();
+    const info = {address: removeAddress};
+    await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(3000);
+
+    const account = await getAccountFromMongo(removeAddress);
+    expect(account).not.to.be.null;
+    expect(account.isActive).to.be.false;
+  });
 
   const tokenForErc20 = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-  
 
   it('address/add erc20 by rest for right', async () => {
     const address = accounts[0];
@@ -202,18 +173,16 @@ describe('core/rest', function () { //todo add integration tests for query, push
         url: `http://localhost:${config.rest.port}/addr/${address}/token`,
         method: 'POST',
         json: {erc20tokens: [tokenForErc20]}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          const account = await getAccountFromMongo(address);
-          expect(account.erc20token[tokenForErc20]).to.be.equal(0);
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+
+        const account = await getAccountFromMongo(address);
+        expect(account.erc20token[tokenForErc20]).to.be.equal(0);
+        res();
       });
     });
   });
-
-
 
   it('address/add erc20 by rest for error', async () => {
     const address = accounts[1];
@@ -224,13 +193,13 @@ describe('core/rest', function () { //todo add integration tests for query, push
         url: `http://localhost:${config.rest.port}/addr/${address}/token`,
         method: 'POST',
         json: {erc20tokens: token}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          expect(resp.body.code).to.be.equal(0);
-          expect(resp.body.message).to.be.equal('fail');
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+
+        expect(resp.body.code).to.be.equal(0);
+        expect(resp.body.message).to.be.equal('fail');
+        res();
       });
     });
   });
@@ -243,13 +212,13 @@ describe('core/rest', function () { //todo add integration tests for query, push
         url: `http://localhost:${config.rest.port}/addr/${address}/token`,
         method: 'DELETE',
         json: {erc20tokens: [tokenForErc20]}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          const account = await getAccountFromMongo(address);
-          expect(account.erc20token[tokenForErc20]).to.be.undefined;
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+
+        const account = await getAccountFromMongo(address);
+        expect(account.erc20token[tokenForErc20]).to.be.undefined;
+        res();
       });
     });
   });
@@ -263,13 +232,13 @@ describe('core/rest', function () { //todo add integration tests for query, push
         url: `http://localhost:${config.rest.port}/addr/${address}/token`,
         method: 'DELETE',
         json: {erc20tokens: token}
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          expect(resp.body.code).to.be.equal(0);
-          expect(resp.body.message).to.be.equal('fail');
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+
+        expect(resp.body.code).to.be.equal(0);
+        expect(resp.body.message).to.be.equal('fail');
+        res();
       });
     });
   });
@@ -281,15 +250,14 @@ describe('core/rest', function () { //todo add integration tests for query, push
       request({
         url: `http://localhost:${config.rest.port}/addr/${address}/balance`,
         method: 'GET',
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
 
-          const body = JSON.parse(resp.body);
-          expect(body.balance).to.be.not.undefined;
-          expect(body.erc20token).to.be.empty;
-          res();
+        const body = JSON.parse(resp.body);
+        expect(body.balance).to.be.not.undefined;
+        expect(body.erc20token).to.be.empty;
+        res();
       });
     });
   });
@@ -305,153 +273,92 @@ describe('core/rest', function () { //todo add integration tests for query, push
       value: 10
     });
 
-    await new blockModel({
-      number: 1,
-      'hash': 1,
-      'timestamp': 0,
-      'transactions': [
-        {
-          "hash" : "0x80bda62321ed94cd84a50f541d9bfb986cea28de064eca039d19300762c956a2",
-          "nonce" : 12,
-          "transactionIndex" : 0,
-          "from" : accounts[0],
-          "to": accounts[1],
-          "value" : "90",
-          "gas" : 90000,
-          "gasPrice" : "1",
-          "input" : "0x0",
-          "logs" : []
-        }
-      ]
-    }).save();
-
-    const query = `limit=1`;
+    await Promise.delay(30000);
 
     await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/tx/${address}/history?${query}`,
+        url: `http://localhost:${config.rest.port}/tx/${address}/history?limit=1`,
         method: 'GET',
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
 
-          try {
-            expect(resp.body).to.not.be.empty;
-            const body = JSON.parse(resp.body);
-            expect(body).to.be.an('array').not.empty;
+        try {
+          expect(resp.body).to.not.be.empty;
+          const body = JSON.parse(resp.body);
+          expect(body).to.be.an('array').not.empty;
 
-            const respTx = body[0];
-            expect(respTx.to).to.equal(accounts[1]);
-            expect(respTx.from).to.equal(accounts[0]);
-            expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'blockHash', 'timestamp']);
-            res();            
-          } catch (e) {
-            rej(e || resp);
-          }
+          const respTx = body[0];
+          expect(respTx.to).to.equal(accounts[1]);
+          expect(respTx.from).to.equal(accounts[0]);
+          expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'timestamp']);
+          res();
+        } catch (e) {
+          rej(e || resp);
+        }
       });
     });
   });
 
-
   it('GET tx/:addr/history for non exist', async () => {
     const address = accounts[3];
-
-
 
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/tx/${address}/history`,
         method: 'GET',
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
 
-          const body = resp.body;
-          expect(body).to.be.equal('');
-          res();
+        const body = resp.body;
+        expect(body).to.be.equal('[]');
+        res();
       });
     });
   });
 
   it('GET tx/:hash for transaction [0 => 1]', async () => {
-    const address = accounts[3];
-
-
-    const query = `to=${accounts[3]}&created>${moment().toISOString()}`;
-
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
         method: 'GET',
       }, (err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
 
-          const respTx = JSON.parse(resp.body);
-          //expect(respTx.to).to.equal(accounts[1]);
-          //expect(respTx.from).to.equal(accounts[0]);
-          expect(respTx).to.contain.all.keys(['to', 'from', 'hash', 'blockNumber', 'blockHash']);
-          res();
+        const respTx = JSON.parse(resp.body);
+        expect(respTx).to.contain.all.keys(['to', 'from', 'hash', 'blockNumber']);
+        res();
       });
     });
   });
-
-
-  // it('POST sc', async () => {
-  //   const address = accounts[0];
-
-
-  //   await new Promise((res, rej) => {
-  //     request({
-  //       url: `http://localhost:${config.rest.port}/sc`,
-  //       form: {from: address, args: [accounts[1]]},
-  //       method: 'POST',
-  //     }, async(err, resp) => {
-  //         if (err || resp.statusCode !== 200) {
-  //           return rej(err || resp)
-  //         }
-
-  //         const body = JSON.parse(resp.body);
-  //         console.log(body);
-  //         expect(body).to.be.an('object');
-  //         expect(body.txParams).to.be.an('object').contain.all.keys([
-  //           'nonce', 'gasPrice', 'gasLimit', 'to', 'value', 'data'
-  //         ]);
-  //         expect(body.call).to.be.not.undefined;
-  //         res();
-  //     });
-  //   });
-  // });
-
 
   it('GET events/:name - check routes for all events by name event', () =>
     Promise.all(
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
-          request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
+          request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) =>
             err || resp.statusCode !== 200 ? rej(err || resp) : res()
-          })
+          );
         })
       )
     )
   );
 
-  it('GET events - check all events', async() => {
+  it('GET events - check all events', async () => {
     await new Promise((res, rej) => {
       request({
         url: `http://localhost:${config.rest.port}/events`,
         method: 'GET'
-      }, async(err, resp) => {
-          if (err || resp.statusCode !== 200) {
-            return rej(err || resp)
-          }
-          const body = JSON.parse(resp.body);
-          expect(body).to.be.an('array');
-          expect(body).to.length.greaterThan(1);
-          res();
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) {
+          return rej(err || resp)
+        }
+        const body = JSON.parse(resp.body);
+        expect(body).to.be.an('array');
+        expect(body).to.length.greaterThan(1);
+        res();
       });
     });
   });
@@ -459,18 +366,18 @@ describe('core/rest', function () { //todo add integration tests for query, push
   it('GET events/:name - check query language - empty results', async () => {
 
     await new Promise((res, rej) => {
-        request({
-          url: `http://localhost:${config.rest.port}/events/bla-bla`,
-          method: 'GET'
-        }, async(err, resp) => {
-            if (err || resp.statusCode !== 200) {
-              return rej(err || resp)
-            }
-            const body = JSON.parse(resp.body);
-            expect(body).to.be.empty;
-            res();
-        });
+      request({
+        url: `http://localhost:${config.rest.port}/events/bla-bla`,
+        method: 'GET'
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) {
+          return rej(err || resp)
+        }
+        const body = JSON.parse(resp.body);
+        expect(body).to.be.empty;
+        res();
       });
+    });
   });
 
   it('GET events/:name - check query language - get some  results', async () => {
@@ -478,32 +385,32 @@ describe('core/rest', function () { //todo add integration tests for query, push
       `limit=2&sort=_id&offset=1`
 
     return await new Promise((res, rej) => {
-        request({
-          url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
-          method: 'GET'
-        }, async(err, resp) => {
-            if (err || resp.statusCode !== 200) {
-              return rej(err || resp)
-            }
-            const body = JSON.parse(resp.body);
-            expect(body).to.be.an('array');
-            expect(body.length).to.equal(2);
-            
-            const eventOne = body[0];
-            expect(eventOne.controlIndexHash).to.equal('647');
-            expect(eventOne).has.contain.keys([
-              'created', 'controlIndexHash'
-            ]);
+      request({
+        url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+        method: 'GET'
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) {
+          return rej(err || resp)
+        }
+        const body = JSON.parse(resp.body);
+        expect(body).to.be.an('array');
+        expect(body.length).to.equal(2);
 
-            const eventTwo = body[1];
-            expect(eventTwo.controlIndexHash).to.equal('648');
-            expect(eventTwo).has.contain.keys([
-              'created', 'controlIndexHash'
-            ]);
-            
-            res();
-        });
+        const eventOne = body[0];
+        expect(eventOne.controlIndexHash).to.equal('647');
+        expect(eventOne).has.contain.keys([
+          'created', 'controlIndexHash'
+        ]);
+
+        const eventTwo = body[1];
+        expect(eventTwo.controlIndexHash).to.equal('648');
+        expect(eventTwo).has.contain.keys([
+          'created', 'controlIndexHash'
+        ]);
+
+        res();
       });
+    });
   });
 
   it('GET events/:name - check query language - get one result', async () => {
@@ -511,30 +418,29 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const query = `controlIndexHash=647`;
 
     return await new Promise((res, rej) => {
-        request({
-          url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
-          method: 'GET'
-        }, async(err, resp) => {
-            if (err || resp.statusCode !== 200) {
-              return rej(err || resp)
-            }
-            const body = JSON.parse(resp.body);
-            expect(body).to.be.an('array');
-            expect(body.length).to.equal(1);
-            const event = body[0];
-            expect(event).has.contain.keys([
-              'created', 'controlIndexHash'
-            ]);
-            expect(event.controlIndexHash).to.equal('647');
+      request({
+        url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+        method: 'GET'
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200) {
+          return rej(err || resp)
+        }
+        const body = JSON.parse(resp.body);
+        expect(body).to.be.an('array');
+        expect(body.length).to.equal(1);
+        const event = body[0];
+        expect(event).has.contain.keys([
+          'created', 'controlIndexHash'
+        ]);
+        expect(event.controlIndexHash).to.equal('647');
 
-            res();
-        });
+        res();
       });
+    });
   });
 
   // it('POST sc/broadcast', async () => {
   //   const address = accounts[0];
-
 
   //   await new Promise((res, rej) => {
   //     request({
