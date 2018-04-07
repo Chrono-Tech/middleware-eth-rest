@@ -1,4 +1,9 @@
 /**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 licenses.
+ */
+
+/**
  * Expose an express web server
  * @module middleware-eth-rest
  */
@@ -34,10 +39,8 @@ const init = async () => {
     filter: /(.+Model)\.js$/
   });
 
-  if (config.mongo.data.useData) {
+  if (config.mongo.data.useData)
     require('./utils/generateSMEvents')();
-    require('./models/blockModel');
-  }
 
 
   if (config.nodered.autoSyncMigrations)
