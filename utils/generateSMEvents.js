@@ -1,4 +1,10 @@
 /**
+ * Copyright 2017–2018, LaborX PTY
+ * Licensed under the AGPL Version 3 license.
+ * @author Egor Zuev <zyev.egor@gmail.com>
+ */
+
+/**
  * Load all events for smartContracts, output models
  * @module utils/generateSMEvents
  * @requires truffle-contract
@@ -33,13 +39,13 @@ module.exports = () => {
     }))
     .groupBy('name')
     .map(ev => ({
-        name: ev[0].name,
-        inputs: _.chain(ev)
-          .map(ev => ev.inputs)
-          .flattenDeep()
-          .uniqBy('name')
-          .value()
-      })
+      name: ev[0].name,
+      inputs: _.chain(ev)
+        .map(ev => ev.inputs)
+        .flattenDeep()
+        .uniqBy('name')
+        .value()
+    })
     )
     .transform((result, ev) => { //build mongo model, based on event definition from abi
       result[ev.name] = mongoose.data.model(ev.name, new mongoose.Schema(
