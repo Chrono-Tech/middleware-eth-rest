@@ -29,7 +29,7 @@ The available routes are listed below:
 | /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
 | /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
 | /addr/{address}/balance   | GET |  | retrieve balance of the registered address
-| /tx/{address}/history/{startBlock}/{endBlock}   | GET |  | retrieve transactions for the regsitered address in a block range. endBlock - is optional (if not specified - the range will be = 100).
+| /tx/{address}/history   | GET |  | retrieve transactions for the registered adresses [use skip and limit paramters].
 | /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
 | /tx/{hash}   | GET | | return tx by its hash
 | /events   | GET | |returns list of all available events
