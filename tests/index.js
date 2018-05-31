@@ -291,7 +291,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           const respTx = body[0];
           expect(respTx.to).to.equal(accounts[1]);
           expect(respTx.from).to.equal(accounts[0]);
-          expect(respTx).to.contain.all.keys(['hash', 'blockNumber', 'timestamp']);
+          expect(respTx).to.contain.all.keys(['hash', 'blockNumber']);
           res();
         } catch (e) {
           rej(e || resp);
