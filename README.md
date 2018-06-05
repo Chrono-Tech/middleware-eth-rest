@@ -1,6 +1,6 @@
 # middleware-eth-rest [![Build Status](https://travis-ci.org/ChronoBank/middleware-eth-rest.svg?branch=master)](https://travis-ci.org/ChronoBank/middleware-eth-rest)
 
-Middleware service for which expose rest api
+Middleware service which expose rest api
 
 ### Installation
 
@@ -10,8 +10,9 @@ This module is a part of middleware services. You can install it in 2 ways:
 2) by hands: just clone the repo, do 'npm install', set your .env - and you are ready to go
 
 #### About
-This module is used for interaction with middleware. This happens through the layer, which is built on node-red.
+This module is used for interaction with middleware. This happens through the layer, which is built on chronobank [sdk](https://github.com/ChronoBank/middleware-service-sdk).
 So, you don't need to write any code - you can create your own flow with UI tool supplied by node-red itself. Access by this route:
+
 ```
 /admin
 ````
@@ -79,7 +80,6 @@ The options are presented below:
 | NODERED_MONGO_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
 | NODE_RED_MONGO_COLLECTION_PREFIX   | the collection prefix for node-red collections in mongo (If not specified, then the collections will be created without prefix)
 | REST_PORT   | rest plugin port
-| NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
 | NETWORK   | network name (alias)- is used for connecting via ipc (see block processor section)
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 | SMART_CONTRACTS_PATH   | the path to compiled smart contracts (optional, if omitted - then the default dir from node_modules will be used)
