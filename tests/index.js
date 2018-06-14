@@ -66,7 +66,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
   afterEach(async () => {
     await clearQueues(amqpInstance);
   });
-/*
+
   it('validate all event routes', async () => {
     await Promise.all(
       _.map(smEvents, (model, name) =>
@@ -119,7 +119,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
     ]);
 
   });
-*/
+
 
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
@@ -138,33 +138,13 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/update balance address by amqp', async () => {
-    await new Promise.all([
-      (async () => {
-        const channel = await amqpInstance.createChannel();
-        await channel.assertExchange('internal', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.userSupp`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.userSupp`, 'internal', 
-          `${config.rabbit.serviceName}_user.created`
-        );
-        console.log('PPPP');
-        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.userSupp`, async (message) => {
-          console.log('SSSS');
-          const content = JSON.parse(message.content);
-          if (content.address == accounts[0]) {
-            await channel.cancel(message.fields.consumerTag);
-            await channel.close();
-            res();
-          }
-        }, {noAck: true}));
-      })(),
-      (async() => {
+
         const channel = await amqpInstance.createChannel();
         const info = {address: accounts[0]};
         await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
-      })(),
-    ]);
+
   });
-/*
+
   it('address/remove by rest', async () => {
     const removeAddress = _.pullAt(accounts, accounts.length - 1)[0];
 
@@ -498,6 +478,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
   //     });
   //   });
   // });
-*/
+
 });
 
