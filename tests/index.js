@@ -83,23 +83,37 @@ describe('core/rest', function () { //todo add integration tests for query, push
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
 
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/`,
-        method: 'POST',
-        json: {address: newAddress}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-
-        const account = await getAccountFromMongo(newAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.true;
-        expect(account.balance.toNumber()).to.be.equal(0);
-        res();
-      });
-    });
-  });
+    await new Promise.all([
+      (async() => {
+        await new Promise((res, rej) => {
+          request({
+            url: `http://localhost:${config.rest.port}/addr/`,
+            method: 'POST',
+            json: {address: newAddress}
+          }, async (err, resp) => {
+            if (err || resp.statusCode !== 200) 
+              return rej(err || resp);
+            const account = await getAccountFromMongo(newAddress);
+            expect(account).not.to.be.null;
+            expect(account.isActive).to.be.true;
+            res();
+          });
+        });
+      })(),
+      (async () => {
+        const channel = await amqpInstance.createChannel();
+        await channel.assertExchange('internal', 'topic', {durable: false});
+        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
+          `${config.rabbit.serviceName}_user.created`
+        );
+        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
+          const content = JSON.parse(message.content);
+          if (content.address == newAddress)
+            res();
+        }, {noAck: true}));
+      })()
+    ]);
 
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;

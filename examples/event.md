@@ -1,0 +1,10 @@
+```json
+[
+    {
+        "_id":"5b0f9fd8833c5b063967c284","symbol":"0x54494d4500000000000000000000000000000000000000000000000000000000","value":1000,
+        "by":"0x30e8dc8fb374f297d330aa1ed3ad55eed22782cf","controlIndexHash":"0:0x9810ed1986b4334a4c92d0572c84dd5fd6fce7d8ea8b5faab356824684c6f857:0xdc1403c5d2927d8ee09fdec2c1b30a22f13b39d8fa1496fbf092382ccb5da3b6","network":"development",
+        "__v":0,
+        "created":"2018-05-31T07:10:16.328Z"
+    }
+]
+```
