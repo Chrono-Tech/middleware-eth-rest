@@ -115,6 +115,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
       })()
     ]);
 
+  });
+
+
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
     accounts.push(newAddress);
@@ -478,3 +481,4 @@ describe('core/rest', function () { //todo add integration tests for query, push
   // });
 
 });
+
