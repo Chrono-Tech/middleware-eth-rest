@@ -138,11 +138,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/update balance address by amqp', async () => {
-    
-    const channel = await amqpInstance.createChannel();
-
     await new Promise.all([
       (async () => {
+        const channel = await amqpInstance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
         const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.userSupp`);
         await channel.bindQueue(`${config.rabbit.serviceName}_test.userSupp`, 'internal', 
@@ -150,11 +148,15 @@ describe('core/rest', function () { //todo add integration tests for query, push
         );
         return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.userSupp`, async (message) => {
           const content = JSON.parse(message.content);
-          if (content.address == accounts[0])
+          if (content.address == accounts[0]) {
+            await channel.cancel(message.fields.consumerTag);
+            await channel.close();
             res();
+          }
         }, {noAck: true}));
       })(),
       (async() => {
+        const channel = await amqpInstance.createChannel();
         const info = {address: accounts[0]};
         await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
       })(),
@@ -344,7 +346,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           return rej(err || resp);
 
         const body = resp.body;
-        expect(body).to.be.equal('[]');
+        expect(body).to.be.equal('{"code":0,"message":"fail"}');
         res();
       });
     });
