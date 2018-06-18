@@ -20,19 +20,26 @@ So, you don't need to write any code - you can create your own flow with UI tool
 
 #### Predefined Routes with node-red flows
 
+| description | route | method | params | output | 
+| --------- | ---- | - | ---- | --- | 
+| get transactions for the registered address (by default skip = 0, limit=100) | /tx/:addr/history   | GET | ``` {addr: <string>, limit: <Number>, skip: <Number> ```  |```[<Object of tx>]```  [view example](examples/history.md)  
+| get balance of the registered address| /addr/:addr/balance  | GET | ``` {addr: <string>} ``` | ``` {balance: <Number>, assets: {assetId: <Number>}} ```  [view example](examples/balance.md) 
+| get tx by its hash | /tx/{hash}   | GET | ``` {hash: <string>} ``` | ```<Object of tx>```  [view example](examples/tx.md) 
+| register new address on middleware. erc20tokens - is an array of tokens, which balance changes this address will listen to (optional). | /addr   | POST | ``` {address: <string>, erc20tokens: [<string>]} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ``` 
+| mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ```
+| add token to address for listen | /addr/{address}/token | POST | ``` {erc20tokens: [<string>]} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ```
+| remove token address for listen | /addr/{address}/token | DELETE | ``` {erc20tokens: [<string>]} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ```
+| get list of all available events | /events | GET | | ``` [<String>] ```  [view example](examples/events.md)
+| get events collection | /events/{event_name} | GET | ```{event_name: <String>}``` see REST query language section | ``` [{txObj: <Object>}] ``` [view example](examples/event.md)
+
+
 
 The available routes are listed below:
 
 | route | methods | params | description |
 | ------ | ------ | ------ | ------ |
-| /addr   | POST | ``` {address: <string>, erc20tokens: [<string>], nem: [<string>]} ``` | register new address on middleware. erc20tokens - is an array of erc20Tokens, which balance changes this address will listen to (optional), nem - is nem's address (optional).
-| /addr   | DELETE | ``` {address: <string>} ``` | mark an address as inactive and stop perform any actions for this address.
-| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | push passed erc20tokens to an exsiting one for the registered user.
-| /addr/{address}/token   | POST | ``` {erc20tokens: [<string>]} ``` | pull passed erc20tokens from an exsiting one for the registered user.
-| /addr/{address}/balance   | GET |  | retrieve balance of the registered address
-| /tx/{address}/history   | GET |  | retrieve transactions for the registered adresses [use skip and limit paramters].
-| /tx   | POST | ``` {tx: <string>} ``` | broadcast raw transaction
-| /tx/{hash}   | GET | | return tx by its hash
+
+
 | /events   | GET | |returns list of all available events
 | /events/{event_name}   | GET | |returns an event's collection
 
@@ -84,6 +91,7 @@ The options are presented below:
 | NODERED_MONGO_URI   | the URI string for mongo collection for keeping node-red users and flows (optional, if omitted - then default MONGO_URI will be used)
 | SMART_CONTRACTS_PATH   | the path to compiled smart contracts (optional, if omitted - then the default dir from node_modules will be used)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
+| HTTP_ADMIN | admin path for nodered or false (if not publish as default)
 
 License
 ----

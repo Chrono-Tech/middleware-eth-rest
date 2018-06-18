@@ -49,6 +49,7 @@ let config = {
     },
     migrationsInOneFile: true,
     autoSyncMigrations: process.env.NODERED_AUTO_SYNC_MIGRATIONS || true,
+    httpAdminRoot: process.env.HTTP_ADMIN || false,
     customNodesDir: [path.join(__dirname, '../')],
     migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
