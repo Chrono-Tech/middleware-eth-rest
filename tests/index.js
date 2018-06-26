@@ -13,9 +13,7 @@ const config = require('../config'),
   mongoose = require('mongoose'),
   Promise = require('bluebird'),
   expect = require('chai').expect,
-  _ = require('lodash'),
-  require_all = require('require-all'),
-  contract = require('truffle-contract');
+  _ = require('lodash');
 
 mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
@@ -33,38 +31,41 @@ const Web3 = require('web3'),
   amqp = require('amqplib'),
   smEvents = require('../utils/generateSMEvents')(),
   createTestEvents = require('./helpers/createTestEvents'),
-  getEventFromSmEvents = require('./helpers/getEventFromSmEvents');
+  getEventFromSmEvents = require('./helpers/getEventFromSmEvents'),
+  ctx = {
+    accounts: [],
+    amqp: {},
+    eventModel: null
+  };
 
-let accounts, testEvModel, amqpInstance;
-
-describe('core/rest', function () { //todo add integration tests for query, push tx, history and erc20tokens
+describe('core/rest', function () {
 
   before(async () => {
-    amqpInstance = await amqp.connect(config.rabbit.url);
-    await clearQueues(amqpInstance);
+    ctx.amqp.instance = await amqp.connect(config.rabbit.url);
+    await clearQueues(ctx.amqp.instance);
 
     let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
     web3.setProvider(provider);
 
-    accounts = await Promise.promisify(web3.eth.getAccounts)();
+    ctx.accounts = await Promise.promisify(web3.eth.getAccounts)();
     await clearMongoAccounts();
-    await saveAccountForAddress(accounts[0]);
+    await saveAccountForAddress(ctx.accounts[0]);
 
-    testEvModel = getEventFromSmEvents(smEvents, 5);
-    await testEvModel.remove();
-    await createTestEvents(testEvModel);
+    ctx.eventModel = getEventFromSmEvents(smEvents, 5);
+    await ctx.eventModel.remove();
+    await createTestEvents(ctx.eventModel);
   });
 
   after(async () => {
     await clearMongoAccounts();
-    await testEvModel.remove();
+    await ctx.eventModel.remove();
 
     web3.currentProvider.connection.end();
     return mongoose.disconnect();
   });
 
   afterEach(async () => {
-    await clearQueues(amqpInstance);
+    await clearQueues(ctx.amqp.instance);
   });
 
   it('validate all event routes', async () => {
@@ -81,17 +82,17 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('address/create from post request', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);
+    ctx.accounts.push(newAddress);
 
     await new Promise.all([
-      (async() => {
+      (async () => {
         await new Promise((res, rej) => {
           request({
             url: `http://localhost:${config.rest.port}/addr/`,
             method: 'POST',
             json: {address: newAddress}
           }, async (err, resp) => {
-            if (err || resp.statusCode !== 200) 
+            if (err || resp.statusCode !== 200)
               return rej(err || resp);
             const account = await getAccountFromMongo(newAddress);
             expect(account).not.to.be.null;
@@ -101,15 +102,13 @@ describe('core/rest', function () { //todo add integration tests for query, push
         });
       })(),
       (async () => {
-        const channel = await amqpInstance.createChannel();
+        const channel = await ctx.amqp.instance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
-        const balanceQueue = await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', 
-          `${config.rabbit.serviceName}_user.created`
-        );
+        await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', `${config.rabbit.serviceName}_user.created`);
         return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
           const content = JSON.parse(message.content);
-          if (content.address == newAddress) {
+          if (content.address === newAddress) {
             await channel.cancel(message.fields.consumerTag);
             await channel.close();
             res();
@@ -123,9 +122,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    accounts.push(newAddress);
+    ctx.accounts.push(newAddress);
 
-    const channel = await amqpInstance.createChannel();
+    const channel = await ctx.amqp.instance.createChannel();
     const info = {address: newAddress};
     await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
 
@@ -139,14 +138,14 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('address/update balance address by amqp', async () => {
 
-        const channel = await amqpInstance.createChannel();
-        const info = {address: accounts[0]};
-        await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
+    const channel = await ctx.amqp.instance.createChannel();
+    const info = {address: ctx.accounts[0]};
+    await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
 
   });
 
   it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length - 1)[0];
+    const removeAddress = _.pullAt(ctx.accounts, ctx.accounts.length - 1)[0];
 
     await new Promise((res, rej) => {
       request({
@@ -166,9 +165,9 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(accounts, accounts.length - 1)[0];
+    const removeAddress = _.pullAt(ctx.accounts, ctx.accounts.length - 1)[0];
 
-    const channel = await amqpInstance.createChannel();
+    const channel = await ctx.amqp.instance.createChannel();
     const info = {address: removeAddress};
     await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
 
@@ -179,88 +178,8 @@ describe('core/rest', function () { //todo add integration tests for query, push
     expect(account.isActive).to.be.false;
   });
 
-  const tokenForErc20 = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-
-  it('address/add erc20 by rest for right', async () => {
-    const address = accounts[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'POST',
-        json: {erc20tokens: [tokenForErc20]}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-
-        const account = await getAccountFromMongo(address);
-        expect(account.erc20token[tokenForErc20]).to.be.equal(0);
-        res();
-      });
-    });
-  });
-
-  it('address/add erc20 by rest for error', async () => {
-    const address = accounts[1];
-    const token = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'POST',
-        json: {erc20tokens: token}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-
-        expect(resp.body.code).to.be.equal(0);
-        expect(resp.body.message).to.be.equal('fail');
-        res();
-      });
-    });
-  });
-
-  it('address/remove erc20 by rest for right', async () => {
-    const address = accounts[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'DELETE',
-        json: {erc20tokens: [tokenForErc20]}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-
-        const account = await getAccountFromMongo(address);
-        expect(account.erc20token[tokenForErc20]).to.be.undefined;
-        res();
-      });
-    });
-  });
-
-  it('address/remove erc20 by rest for error', async () => {
-    const address = accounts[1];
-    const token = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/${address}/token`,
-        method: 'DELETE',
-        json: {erc20tokens: token}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200)
-          return rej(err || resp);
-
-        expect(resp.body.code).to.be.equal(0);
-        expect(resp.body.message).to.be.equal('fail');
-        res();
-      });
-    });
-  });
-
   it('address/balance by rest', async () => {
-    const address = accounts[0];
+    const address = ctx.accounts[0];
 
     await new Promise((res, rej) => {
       request({
@@ -278,14 +197,12 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  let exampleTransactionHash;
-
   it('GET tx/:addr/history for some query params and one right transaction [0 => 1]', async () => {
-    const address = accounts[0];
+    const address = ctx.accounts[0];
 
-    exampleTransactionHash = await Promise.promisify(web3.eth.sendTransaction)({
-      from: accounts[0],
-      to: accounts[1],
+    ctx.txHash = await Promise.promisify(web3.eth.sendTransaction)({
+      from: ctx.accounts[0],
+      to: ctx.accounts[1],
       value: 10
     });
 
@@ -305,8 +222,8 @@ describe('core/rest', function () { //todo add integration tests for query, push
           expect(body).to.be.an('array').not.empty;
 
           const respTx = body[0];
-          expect(respTx.to).to.equal(accounts[1]);
-          expect(respTx.from).to.equal(accounts[0]);
+          expect(respTx.to).to.equal(ctx.accounts[1]);
+          expect(respTx.from).to.equal(ctx.accounts[0]);
           expect(respTx).to.contain.all.keys(['hash', 'blockNumber']);
           res();
         } catch (e) {
@@ -317,7 +234,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
   });
 
   it('GET tx/:addr/history for non exist', async () => {
-    const address = accounts[3];
+    const address = ctx.accounts[3];
 
     await new Promise((res, rej) => {
       request({
@@ -337,7 +254,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
   it('GET tx/:hash for transaction [0 => 1]', async () => {
     await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/tx/${exampleTransactionHash}`,
+        url: `http://localhost:${config.rest.port}/tx/${ctx.txHash}`,
         method: 'GET',
       }, (err, resp) => {
         if (err || resp.statusCode !== 200)
@@ -398,11 +315,11 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
   it('GET events/:name - check query language - get some  results', async () => {
     const query = `created>${moment().add(-1, 'hours').toISOString()}&` +
-      `limit=2&sort=_id&offset=1`
+      `limit=2&sort=_id&offset=1`;
 
     return await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+        url: `http://localhost:${config.rest.port}/events/${ctx.eventModel.modelName}?${query}`,
         method: 'GET'
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) {
@@ -414,15 +331,11 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
         const eventOne = body[0];
         expect(eventOne.controlIndexHash).to.equal('647');
-        expect(eventOne).has.contain.keys([
-          'created', 'controlIndexHash'
-        ]);
+        expect(eventOne).has.contain.keys(['created', 'controlIndexHash']);
 
         const eventTwo = body[1];
         expect(eventTwo.controlIndexHash).to.equal('648');
-        expect(eventTwo).has.contain.keys([
-          'created', 'controlIndexHash'
-        ]);
+        expect(eventTwo).has.contain.keys(['created', 'controlIndexHash']);
 
         res();
       });
@@ -435,7 +348,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
 
     return await new Promise((res, rej) => {
       request({
-        url: `http://localhost:${config.rest.port}/events/${testEvModel.modelName}?${query}`,
+        url: `http://localhost:${config.rest.port}/events/${ctx.eventModel.modelName}?${query}`,
         method: 'GET'
       }, async (err, resp) => {
         if (err || resp.statusCode !== 200) {
@@ -445,9 +358,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
         expect(body).to.be.an('array');
         expect(body.length).to.equal(1);
         const event = body[0];
-        expect(event).has.contain.keys([
-          'created', 'controlIndexHash'
-        ]);
+        expect(event).has.contain.keys(['created', 'controlIndexHash']);
         expect(event.controlIndexHash).to.equal('647');
 
         res();
