@@ -328,7 +328,7 @@ describe('core/rest', function () { //todo add integration tests for query, push
           return rej(err || resp);
 
         const body = resp.body;
-        expect(body).to.be.equal('{"code":0,"message":"fail"}');
+        expect(body).to.be.equal('[]');
         res();
       });
     });
@@ -455,29 +455,6 @@ describe('core/rest', function () { //todo add integration tests for query, push
     });
   });
 
-  // it('POST sc/broadcast', async () => {
-  //   const address = accounts[0];
-
-  //   await new Promise((res, rej) => {
-  //     request({
-  //       url: `http://localhost:${config.rest.port}/sc/broadcast`,
-  //       form: {'from': address},
-  //       method: 'POST',
-  //     }, async(err, resp) => {
-  //         if (err || resp.statusCode !== 200) {
-  //           return rej(err || resp)
-  //         }
-
-  //         const body = JSON.parse(resp.body);
-  //         expect(body).to.be.an('object');
-  //         expect(body.txParams).to.be.an('object').contain.all.keys([
-  //           'nonce', 'gasPrice', 'gasLimit', 'to', 'value', 'data'
-  //         ]);
-  //         expect(body.call).to.be.not.undefined;
-  //         res();
-  //     });
-  //   });
-  // });
 
 });
 
