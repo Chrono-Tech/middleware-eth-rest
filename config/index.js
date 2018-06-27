@@ -16,6 +16,7 @@ const path = require('path'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
   log = bunyan.createLogger({name: 'core.rest'}),
+  BigNumber = require('bignumber.js'),
   net = require('net');
 
 let config = {
@@ -54,7 +55,11 @@ let config = {
     migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {
-        sm: require('../factories/sc/smartContractsFactory')
+        sm: require('../factories/sc/smartContractsFactory'),
+        smEvents: require('../factories/sc/smartContractsEventsFactory')
+      },
+      libs: {
+        BigNumber: BigNumber
       },
       'truffle-contract': require('truffle-contract'),
       connections: {
