@@ -18,6 +18,8 @@ const path = require('path'),
   _ = require('lodash'),
   smartContracts = require('../factories/sc/smartContractsFactory'),
   smartContractsEvents = require('../factories/sc/smartContractsEventsFactory'),
+  eventToQueryConverter = require('../utils/converters/eventToQueryConverter'),
+  queryResultToEventArgsConverter = require('../utils/converters/queryResultToEventArgsConverter'),
   log = bunyan.createLogger({name: 'core.rest'}),
   BigNumber = require('bignumber.js'),
   net = require('net');
@@ -64,7 +66,13 @@ let config = {
         smEvents: smartContractsEvents
       },
       libs: {
-        BigNumber: BigNumber
+        BigNumber: BigNumber,
+        utils: {
+          converters: {
+            eventToQueryConverter: eventToQueryConverter,
+            queryResultToEventArgsConverter: queryResultToEventArgsConverter
+          }
+        },
       },
       'truffle-contract': require('truffle-contract'),
       connections: {
