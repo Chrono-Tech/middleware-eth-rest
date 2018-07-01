@@ -8,7 +8,7 @@ const getTopic = arg => {
   bn.c = arg.c;
   bn.e = arg.e;
   let topic = bn.toString(16);
-  while (topic.length < 64)
+  while (topic.length < 40)
     topic = '0' + topic;
   return '0x' + topic;
 };
@@ -33,15 +33,19 @@ module.exports = (eventName, queryResults) => {
         let value = getTopic(arg);
 
         if (new RegExp(/uint/).test(definition.type))
-          value = BigNumber(value, 16).toString();
+          value = BigNumber(value, 16);
 
         return {[definition.name]: value};
 
       })
       .transform((result, value) => _.merge(result, value), {})
       .merge({
-        event: event.name
-
+        event: event.name,
+        includedIn:{
+          blockNumber: item.blockNumber,
+          txIndex: item.txIndex,
+          logIndex: item.index
+        }
       })
       .value()
   )
