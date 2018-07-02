@@ -5,16 +5,22 @@ const _ = require('lodash'),
 const topicToArg = (topic, topicIndex) => {
   const bn = BigNumber(topic, 16);
   return {
-    [`args.${topicIndex}.e`]: bn.e,
-    [`args.${topicIndex}.c`]: bn.c
+    e: bn.e,
+    c: bn.c,
+    index: topicIndex
   }
 };
 
 function deepMap(obj, cb, keyPath) {
 
   let out = _.isArray(obj) ? [] : {};
+  let argNotFound = false;
 
   Object.keys(obj).forEach(k => {
+
+    if (argNotFound)
+      return;
+
     let val;
 
     if (obj[k] !== null && typeof obj[k] === 'object') {
@@ -24,8 +30,6 @@ function deepMap(obj, cb, keyPath) {
       } else {
         keyPath.push(k);
         val = deepMap(obj[k], cb, keyPath);
-        //console.log(keyPath);
-        //console.log(val)
       }
     } else {
       let fullPath = [];
@@ -33,50 +37,97 @@ function deepMap(obj, cb, keyPath) {
       if (keyPath)
         fullPath.push(...keyPath);
       val = cb(obj[k], fullPath);
+
+      if (_.find(fullPath, key => key.indexOf('$') === 0) && val.converted) {
+        val = {args: {$elemMatch: val.arg}};
+      }
     }
 
 
-    if (!_.isArray(obj) && _.isObject(val) && val.converted)
-      return _.merge(out, val.arg);
+    if (!keyPath && _.find(Object.keys(obj[k]), key => key.indexOf('$') === 0)) { //todo
+      let data = cb('', [k]);
+      if (!data.arg) {
+        argNotFound = true;
+        return;
+      }
+    }
 
 
-    if (val.converted)
-      val = val.arg;
-
+    if (!_.isArray(obj) && _.isObject(val) && val.converted) {
+      if (!out.$and)
+        out.$and = [];
+      out.$and.push({args: {$elemMatch: val.arg}});
+      return;
+    }
 
     _.isArray(obj) ? out.push(val) :
       out[k] = val;
   });
 
-  return out;
+  return argNotFound ? null : out;
 }
+
+function replace(criteria) {
+
+      let paths = _.chain(criteria).keys()
+        .filter(key =>
+          _.chain(criteria[key]).keys().find(nestedKey => nestedKey.indexOf('$') === 0).value()
+        )
+        .value();
+
+      return _.transform(paths, (result, path) => {
+
+        if (criteria[path].$in) {
+
+          if (!result.$or)
+            result.$or = [];
+
+          result.$or.push(...result[path].$in);
+          delete result[path];
+        }
+
+      }, criteria);
+}
+
 
 const converter = (eventName, query) => {
 
   eventName = eventName.toLowerCase();
 
-  const event = _.find(smEvents, ev => ev.name.toLowerCase() === eventName);
+  const eventDefinitions = _.filter(smEvents, ev => ev.name.toLowerCase() === eventName);
 
-  if (!event)
+
+  if (!eventDefinitions.length)
     return;
 
-  let criteria = deepMap(query, (val, keyPath) => {
 
-    let eventParamIndex = _.chain(keyPath)
-      .reverse()
-      .find(name => _.find(event.inputs, {name: name}))
-      .thru(name => _.findIndex(event.inputs, {name: name}))
-      .value();
+  let finalQuery = _.chain(eventDefinitions)
+    .map(event => {
+      let criteria = deepMap(query, (val, keyPath) => {
 
-    if (eventParamIndex === -1)
-      return val;
 
-    return {arg: topicToArg(val, eventParamIndex), converted: true};
-  });
+        let eventParamIndex = _.chain(keyPath)
+          .reverse()
+          .find(name => _.find(event.inputs, {name: name}))
+          .thru(name => _.findIndex(event.inputs, {name: name}))
+          .value();
 
-  criteria.signature = event.signature;
+        if (eventParamIndex === -1)
+          return val;
 
-  return criteria;
+        return {arg: topicToArg(val, eventParamIndex), converted: true};
+      });
+
+      if (criteria)
+        criteria.signature = event.signature;
+
+      return criteria;
+    })
+    .filter(criteria => criteria)
+    .map(criteria => replace(criteria))
+    .value();
+
+  return finalQuery.length > 1 ? {$or: finalQuery} : finalQuery[0];
 
 };
 
