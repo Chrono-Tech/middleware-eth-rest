@@ -71,7 +71,7 @@ function replace(criteria) {
 
       let paths = _.chain(criteria).keys()
         .filter(key =>
-          _.chain(criteria[key]).keys().find(nestedKey => nestedKey.indexOf('$') === 0).value()
+         key.indexOf('$') === 0 ||  _.chain(criteria[key]).keys().find(nestedKey => nestedKey.indexOf('$') === 0).value()
         )
         .value();
 
@@ -84,6 +84,7 @@ function replace(criteria) {
 
           result.$or.push(...result[path].$in);
           delete result[path];
+          return;
         }
 
 
@@ -108,6 +109,24 @@ function replace(criteria) {
 
           result.$and.push(...subQuery);
           delete result[path];
+          return;
+        }
+
+        if(path === '$or'){
+
+          criteria.$or = _.chain(criteria.$or)
+            .map(item=> {
+            let pair =  _.toPairs(item)[0];
+
+            if(!pair[1].args){
+              return _.fromPairs([pair]);
+            }
+
+
+            return pair[1];
+            })
+            .value()
+
         }
 
 
@@ -123,7 +142,6 @@ const converter = (eventName, query) => {
   eventName = eventName.toLowerCase();
 
   const eventDefinitions = _.filter(smEvents, ev => ev.name.toLowerCase() === eventName);
-
 
   if (!eventDefinitions.length)
     return;
