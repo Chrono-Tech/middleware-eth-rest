@@ -86,6 +86,34 @@ function replace(criteria) {
           delete result[path];
         }
 
+
+        if(criteria[path].$nin || criteria[path].$ne){
+
+          if (!result.$and)
+            result.$and = [];
+
+          let subQuery = _.chain(criteria[path].$nin ||  [criteria[path].$ne])
+            .map(item=>{
+
+              if(!item.args)
+                return item;
+
+              item.args.$elemMatch.e = {$ne: item.args.$elemMatch.e};
+              item.args.$elemMatch.c = {$ne: item.args.$elemMatch.c};
+              item.args.$elemMatch.index = {$ne: item.args.$elemMatch.index};
+
+              return item;
+            })
+            .value();
+
+          result.$and.push(...subQuery);
+          delete result[path];
+        }
+
+
+
+
+
       }, criteria);
 }
 
