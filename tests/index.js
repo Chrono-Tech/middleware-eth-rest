@@ -29,8 +29,8 @@ const Web3 = require('web3'),
   net = require('net'),
   moment = require('moment'),
   amqp = require('amqplib'),
-  smEvents = require('../utils/generateSMEvents')(),
   createTestEvents = require('./helpers/createTestEvents'),
+  smEvents = require('../factories/sc/smartContractsEventsFactory'),
   getEventFromSmEvents = require('./helpers/getEventFromSmEvents'),
   ctx = {
     accounts: [],
@@ -41,7 +41,7 @@ const Web3 = require('web3'),
 describe('core/rest', function () {
 
   before(async () => {
-    ctx.amqp.instance = await amqp.connect(config.rabbit.url);
+    ctx.amqp.instance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
     await clearQueues(ctx.amqp.instance);
 
     let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
@@ -51,14 +51,10 @@ describe('core/rest', function () {
     await clearMongoAccounts();
     await saveAccountForAddress(ctx.accounts[0]);
 
-    ctx.eventModel = getEventFromSmEvents(smEvents, 5);
-    await ctx.eventModel.remove();
-    await createTestEvents(ctx.eventModel);
   });
 
   after(async () => {
     await clearMongoAccounts();
-    await ctx.eventModel.remove();
 
     web3.currentProvider.connection.end();
     return mongoose.disconnect();
@@ -104,9 +100,9 @@ describe('core/rest', function () {
       (async () => {
         const channel = await ctx.amqp.instance.createChannel();
         await channel.assertExchange('internal', 'topic', {durable: false});
-        await channel.assertQueue(`${config.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.rabbit.serviceName}_test.user`, 'internal', `${config.rabbit.serviceName}_user.created`);
-        return await new Promise(res => channel.consume(`${config.rabbit.serviceName}_test.user`, async (message) => {
+        await channel.assertQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, 'internal', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_user.created`);
+        return await new Promise(res => channel.consume(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, async (message) => {
           const content = JSON.parse(message.content);
           if (content.address === newAddress) {
             await channel.cancel(message.fields.consumerTag);
@@ -120,13 +116,14 @@ describe('core/rest', function () {
   });
 
 
+
   it('address/create from rabbit mq', async () => {
     const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
     ctx.accounts.push(newAddress);
 
     const channel = await ctx.amqp.instance.createChannel();
     const info = {address: newAddress};
-    await channel.publish('events', `${config.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
+    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
 
     await Promise.delay(3000);
 
@@ -140,7 +137,7 @@ describe('core/rest', function () {
 
     const channel = await ctx.amqp.instance.createChannel();
     const info = {address: ctx.accounts[0]};
-    await channel.publish('events', `${config.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
+    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
 
   });
 
@@ -169,7 +166,7 @@ describe('core/rest', function () {
 
     const channel = await ctx.amqp.instance.createChannel();
     const info = {address: removeAddress};
-    await channel.publish('events', `${config.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
+    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
 
     await Promise.delay(3000);
 
@@ -313,6 +310,7 @@ describe('core/rest', function () {
     });
   });
 
+/*
   it('GET events/:name - check query language - get some  results', async () => {
     const query = `created>${moment().add(-1, 'hours').toISOString()}&` +
       `limit=2&sort=_id&offset=1`;
@@ -365,6 +363,8 @@ describe('core/rest', function () {
       });
     });
   });
+*/
+
 
 
 });
