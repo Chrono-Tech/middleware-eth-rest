@@ -60,6 +60,9 @@ let config = {
       connections: {
         primary: mongoose
       },
+      libs: {
+        bluebird: Promise,
+      },
       settings: {
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
@@ -76,8 +79,11 @@ let config = {
 
 const initWeb3Provider = (web3) => {
 
-  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+  const provider = /^http/.test(config.web3.uri) ?
+     new Web3.providers.HttpProvider(config.web3.uri) :
+     new Web3.providers.IpcProvider(config.web3.uri, net);
   web3.setProvider(provider);
+  if (web3.currentProvider.connection)
   web3.currentProvider.connection.on('error', async () => {
     log.error('restart ipc client');
     await Promise.delay(5000);
