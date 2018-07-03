@@ -41,7 +41,7 @@ module.exports = (eventName, queryResults) => {
 
         if (item.indexed) {
           let origIndex = _.findIndex(indexedInputs[event.signature], item);
-          result[origIndex] = index
+          result[origIndex] = index;
         } else {
           let origIndex = _.chain(event.inputs)
             .filter({indexed: false})
@@ -54,8 +54,6 @@ module.exports = (eventName, queryResults) => {
       }, {})
       .value();
   }, {});
-
-  console.log(indexedMap)
 
   return queryResults.map(item =>
     _.chain(item.args)
@@ -87,6 +85,6 @@ module.exports = (eventName, queryResults) => {
         }
       })
       .value()
-  )
+  );
 
 };

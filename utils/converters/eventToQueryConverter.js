@@ -8,10 +8,10 @@ const topicToArg = (topic, topicIndex) => {
     e: bn.e,
     c: bn.c,
     index: topicIndex
-  }
+  };
 };
 
-function deepMap(obj, cb, keyPath) {
+function deepMap (obj, cb, keyPath) {
 
   let out = _.isArray(obj) ? [] : {};
   let argNotFound = false;
@@ -23,7 +23,7 @@ function deepMap(obj, cb, keyPath) {
 
     let val;
 
-    if (obj[k] !== null && typeof obj[k] === 'object') {
+    if (obj[k] !== null && typeof obj[k] === 'object') 
 
       if (!keyPath) {
         val = deepMap(obj[k], cb, [k]);
@@ -31,16 +31,16 @@ function deepMap(obj, cb, keyPath) {
         keyPath.push(k);
         val = deepMap(obj[k], cb, keyPath);
       }
-    } else {
+    else {
       let fullPath = [];
       fullPath.push(k);
       if (keyPath)
         fullPath.push(...keyPath);
       val = cb(obj[k], fullPath);
 
-      if (_.find(fullPath, key => key.indexOf('$') === 0) && val.converted) {
+      if (_.find(fullPath, key => key.indexOf('$') === 0) && val.converted) 
         val = {args: {$elemMatch: val.arg}};
-      }
+      
     }
 
 
@@ -67,7 +67,7 @@ function deepMap(obj, cb, keyPath) {
   return argNotFound ? null : out;
 }
 
-function replace(criteria) {
+function replace (criteria) {
 
   let paths = _.chain(criteria).keys()
     .filter(key =>
@@ -112,22 +112,22 @@ function replace(criteria) {
       return;
     }
 
-    if (path === '$or') {
+    if (path === '$or') 
 
       criteria.$or = _.chain(criteria.$or)
         .map(item => {
           let pair = _.toPairs(item)[0];
 
-          if (!pair[1].args) {
+          if (!pair[1].args) 
             return _.fromPairs([pair]);
-          }
+          
 
 
           return pair[1];
         })
-        .value()
+        .value();
 
-    }
+    
 
 
   }, criteria);
@@ -180,7 +180,7 @@ const converter = (eventName, query) => {
             .findIndex({name: input.name})
             .value();
 
-          eventParamIndex = shiftedIndex + origIndex
+          eventParamIndex = shiftedIndex + origIndex;
         }
 
 

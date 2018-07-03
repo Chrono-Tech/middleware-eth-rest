@@ -46,6 +46,6 @@ let rawContractEvents = _.chain(contractsRaw)
 
 
 module.exports = _.chain(truffleContractEvents)
-    .union(rawContractEvents)
-    .uniqBy('signature')
-    .value();
+  .union(rawContractEvents)
+  .uniqBy('signature')
+  .value();
