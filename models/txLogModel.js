@@ -24,7 +24,7 @@ const setArgs = function (topics) {
       e: bn.e,
       c: bn.c,
       index: index
-    }
+    };
   });
 };
 
