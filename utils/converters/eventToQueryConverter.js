@@ -69,71 +69,68 @@ function deepMap(obj, cb, keyPath) {
 
 function replace(criteria) {
 
-      let paths = _.chain(criteria).keys()
-        .filter(key =>
-         key.indexOf('$') === 0 ||  _.chain(criteria[key]).keys().find(nestedKey => nestedKey.indexOf('$') === 0).value()
-        )
+  let paths = _.chain(criteria).keys()
+    .filter(key =>
+      key.indexOf('$') === 0 || _.chain(criteria[key]).keys().find(nestedKey => nestedKey.indexOf('$') === 0).value()
+    )
+    .value();
+
+  return _.transform(paths, (result, path) => {
+
+    if (criteria[path].$in) {
+
+      if (!result.$or)
+        result.$or = [];
+
+      result.$or.push(...result[path].$in);
+      delete result[path];
+      return;
+    }
+
+
+    if (criteria[path].$nin || criteria[path].$ne) {
+
+      if (!result.$and)
+        result.$and = [];
+
+      let subQuery = _.chain(criteria[path].$nin || [criteria[path].$ne])
+        .map(item => {
+
+          if (!item.args)
+            return item;
+
+          item.args.$elemMatch.e = {$ne: item.args.$elemMatch.e};
+          item.args.$elemMatch.c = {$ne: item.args.$elemMatch.c};
+          item.args.$elemMatch.index = {$ne: item.args.$elemMatch.index};
+
+          return item;
+        })
         .value();
 
-      return _.transform(paths, (result, path) => {
+      result.$and.push(...subQuery);
+      delete result[path];
+      return;
+    }
 
-        if (criteria[path].$in) {
+    if (path === '$or') {
 
-          if (!result.$or)
-            result.$or = [];
+      criteria.$or = _.chain(criteria.$or)
+        .map(item => {
+          let pair = _.toPairs(item)[0];
 
-          result.$or.push(...result[path].$in);
-          delete result[path];
-          return;
-        }
-
-
-        if(criteria[path].$nin || criteria[path].$ne){
-
-          if (!result.$and)
-            result.$and = [];
-
-          let subQuery = _.chain(criteria[path].$nin ||  [criteria[path].$ne])
-            .map(item=>{
-
-              if(!item.args)
-                return item;
-
-              item.args.$elemMatch.e = {$ne: item.args.$elemMatch.e};
-              item.args.$elemMatch.c = {$ne: item.args.$elemMatch.c};
-              item.args.$elemMatch.index = {$ne: item.args.$elemMatch.index};
-
-              return item;
-            })
-            .value();
-
-          result.$and.push(...subQuery);
-          delete result[path];
-          return;
-        }
-
-        if(path === '$or'){
-
-          criteria.$or = _.chain(criteria.$or)
-            .map(item=> {
-            let pair =  _.toPairs(item)[0];
-
-            if(!pair[1].args){
-              return _.fromPairs([pair]);
-            }
+          if (!pair[1].args) {
+            return _.fromPairs([pair]);
+          }
 
 
-            return pair[1];
-            })
-            .value()
+          return pair[1];
+        })
+        .value()
 
-        }
-
-
+    }
 
 
-
-      }, criteria);
+  }, criteria);
 }
 
 
@@ -151,7 +148,6 @@ const converter = (eventName, query) => {
     .map(event => {
       let criteria = deepMap(query, (val, keyPath) => {
 
-
         let eventParamIndex = _.chain(keyPath)
           .reverse()
           .find(name => _.find(event.inputs, {name: name}))
@@ -160,6 +156,33 @@ const converter = (eventName, query) => {
 
         if (eventParamIndex === -1)
           return val;
+
+        let input = event.inputs[eventParamIndex];
+
+        if (input.indexed) {
+          let shiftedIndex = _.chain(event.inputs)
+            .take(eventParamIndex)
+            .filter({indexed: false})
+            .size()
+            .value();
+
+
+          eventParamIndex = eventParamIndex - shiftedIndex;
+
+        } else {
+          let shiftedIndex = _.chain(event.inputs)
+            .filter({indexed: true})
+            .size()
+            .value();
+
+          let origIndex = _.chain(event.inputs)
+            .filter({indexed: false})
+            .findIndex({name: input.name})
+            .value();
+
+          eventParamIndex = shiftedIndex + origIndex
+        }
+
 
         return {arg: topicToArg(val, eventParamIndex), converted: true};
       });
