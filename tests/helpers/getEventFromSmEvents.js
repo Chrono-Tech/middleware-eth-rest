@@ -6,5 +6,6 @@
 const _ = require('lodash');
 
 module.exports = (smEvents, key) => {
+    console.log(smEvents)
     return _.toPairs(smEvents)[key][1];
 }
