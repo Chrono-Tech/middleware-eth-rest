@@ -24,7 +24,7 @@ module.exports = (eventName, queryResults) => {
   const eventDefinitions = _.filter(smEvents, event => signatures.indexOf(event.signature) !== -1);
 
   if (!eventDefinitions.length)
-    return;
+    return [];
 
   let eventsMap = _.transform(eventDefinitions, (result, event) => {
     result[event.signature] = event;
