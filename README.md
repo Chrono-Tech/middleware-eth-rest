@@ -88,6 +88,7 @@ The options are presented below:
 | SMART_CONTRACTS_PATH   | the path to compiled smart contracts (optional, if omitted - then the default dir from node_modules will be used)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
 | HTTP_ADMIN | admin path for nodered or false (if not publish as default)
+| LABORX | url for laborxAuth [default=localhost:3001]
 
 License
 ----
