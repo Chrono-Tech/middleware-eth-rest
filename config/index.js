@@ -15,8 +15,15 @@ const path = require('path'),
   bunyan = require('bunyan'),
   Promise = require('bluebird'),
   mongoose = require('mongoose'),
+  _ = require('lodash'),
+  smartContracts = require('../factories/sc/smartContractsFactory'),
+  smartContractsEvents = require('../factories/sc/smartContractsEventsFactory'),
+  eventToQueryConverter = require('../utils/converters/eventToQueryConverter'),
+  queryResultToEventArgsConverter = require('../utils/converters/queryResultToEventArgsConverter'),
   log = bunyan.createLogger({name: 'core.rest'}),
+  BigNumber = require('bignumber.js'),
   net = require('net');
+
 
 let config = {
   mongo: {
@@ -31,6 +38,7 @@ let config = {
     }
   },
   web3: {
+    networkId: parseInt(process.env.NETWORK_ID) || 4,
     network: process.env.NETWORK || 'development',
     uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
   },
@@ -54,13 +62,26 @@ let config = {
     migrationsDir: path.join(__dirname, '../migrations'),
     functionGlobalContext: {
       factories: {
-        sm: require('../factories/sc/smartContractsFactory')
+        sm: smartContracts,
+        smEvents: smartContractsEvents
+      },
+      libs: {
+        BigNumber: BigNumber,
+        utils: {
+          converters: {
+            eventToQueryConverter: eventToQueryConverter,
+            queryResultToEventArgsConverter: queryResultToEventArgsConverter
+          }
+        },
       },
       'truffle-contract': require('truffle-contract'),
       connections: {
         primary: mongoose
       },
       settings: {
+        events: {
+          address: _.get(smartContracts, `MultiEventsHistory.networks.${process.env.NETWORK_ID || 4}.address`)
+        },
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
           collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
@@ -87,9 +108,6 @@ const initWeb3Provider = (web3) => {
 };
 
 module.exports = (() => {
-  //for easy tests
-  config.rabbit = config.nodered.functionGlobalContext.settings.rabbit;
-
   config.nodered.functionGlobalContext.web3 = new Web3();
   initWeb3Provider(config.nodered.functionGlobalContext.web3);
   return config;

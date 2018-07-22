@@ -40,10 +40,6 @@ const init = async () => {
     filter: /(.+Model)\.js$/
   });
 
-  if (config.mongo.data.useData)
-    require('./utils/generateSMEvents')();
-
-
   if (config.nodered.autoSyncMigrations)
     await migrator.run(config.nodered.mongo.uri, path.join(__dirname, 'migrations'));
 
