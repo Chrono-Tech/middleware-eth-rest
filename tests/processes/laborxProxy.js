@@ -8,7 +8,7 @@ const express = require('express'),
   config = require('../config');
 
 // respond with "hello world" when a GET request is made to the homepage
-app.post('/signin/signature/addresses', function (req, res) {
+app.post('/api/v1/security/signin/signature/addresses', function (req, res) {
   if (!req.headers.authorization) res.status(400).send('missing authorization header');
   
   const params = req.headers.authorization.split(' ');

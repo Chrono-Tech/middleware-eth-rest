@@ -92,7 +92,7 @@ let config = {
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
         },
         laborx: {
-          authProvider: process.env.LABORX || 'http://localhost:3001',
+          authProvider: process.env.LABORX || 'http://localhost:3001i/api/v1/security',
           profileModel: accountPrefix + 'Profile',
           dbAlias: 'accounts'
         }
