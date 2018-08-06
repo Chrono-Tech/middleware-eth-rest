@@ -19,8 +19,7 @@ mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
-const Web3 = require('web3'),
-  web3 = new Web3(),
+const web3 = config.nodered.functionGlobalContext.web3,
   clearMongoAccounts = require('./helpers/clearMongoAccounts'),
   clearQueues = require('./helpers/clearQueues'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
@@ -28,6 +27,7 @@ const Web3 = require('web3'),
   request = require('request'),
   authRequest = require('./helpers/authRequest'),
   net = require('net'),
+  accountModel = require('../models/accountModel'),
   moment = require('moment'),
   amqp = require('amqplib'),
   createTestEvents = require('./helpers/createTestEvents'),
@@ -45,9 +45,6 @@ describe('core/rest', function () {
     ctx.amqp.instance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
     await clearQueues(ctx.amqp.instance);
 
-    let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
-    web3.setProvider(provider);
-
     ctx.accounts = await Promise.promisify(web3.eth.getAccounts)();
     await clearMongoAccounts();
     await saveAccountForAddress(ctx.accounts[0]);
@@ -63,6 +60,26 @@ describe('core/rest', function () {
 
   afterEach(async () => {
     await clearQueues(ctx.amqp.instance);
+  });
+
+  it('address/create from post request', async () => {
+    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
+
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/addr/`,
+        method: 'POST',
+        json: {address: newAddress}
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+        await Promise.delay(2000);
+        const account = await accountModel.findOne({address: newAddress});
+        expect(account).not.to.be.null;
+        expect(account.isActive).to.be.true;
+        res();
+      });
+    });
   });
 
   it('address/create from rabbitmq (not waves address) and check that all right', async () => {

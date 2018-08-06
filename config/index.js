@@ -103,13 +103,17 @@ let config = {
 
 const initWeb3Provider = (web3) => {
 
-  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+  const provider = /^http/.test(config.web3.uri) ?
+    new Web3.providers.HttpProvider(config.web3.uri) :
+    new Web3.providers.IpcProvider(`${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${config.web3.uri}`, net);
+
   web3.setProvider(provider);
-  web3.currentProvider.connection.on('error', async () => {
-    log.error('restart ipc client');
-    await Promise.delay(5000);
-    initWeb3Provider(web3);
-  });
+  if (web3.currentProvider.connection)
+    web3.currentProvider.connection.on('error', async () => {
+      log.error('restart ipc client');
+      await Promise.delay(5000);
+      initWeb3Provider(web3);
+    });
 
 };
 
