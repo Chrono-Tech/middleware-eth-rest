@@ -24,12 +24,17 @@ const path = require('path'),
   BigNumber = require('bignumber.js'),
   net = require('net');
 
+const accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth';
 
 let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+      collectionPrefix: accountPrefix
+    },
+    profile: {
+      uri: process.env.MONGO_PROFILE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
@@ -89,6 +94,11 @@ let config = {
         rabbit: {
           url: process.env.RABBIT_URI || 'amqp://localhost:5672',
           serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
+        },
+        laborx: {
+          authProvider: process.env.LABORX || 'http://localhost:3001i/api/v1/security',
+          profileModel: accountPrefix + 'Profile',
+          dbAlias: 'accounts'
         }
       }
     }
@@ -97,13 +107,17 @@ let config = {
 
 const initWeb3Provider = (web3) => {
 
-  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+  const provider = /^http/.test(config.web3.uri) ?
+    new Web3.providers.HttpProvider(config.web3.uri) :
+    new Web3.providers.IpcProvider(`${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${config.web3.uri}`, net);
+
   web3.setProvider(provider);
-  web3.currentProvider.connection.on('error', async () => {
-    log.error('restart ipc client');
-    await Promise.delay(5000);
-    initWeb3Provider(web3);
-  });
+  if (web3.currentProvider.connection)
+    web3.currentProvider.connection.on('error', async () => {
+      log.error('restart ipc client');
+      await Promise.delay(5000);
+      initWeb3Provider(web3);
+    });
 
 };
 

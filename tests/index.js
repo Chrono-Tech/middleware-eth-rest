@@ -19,14 +19,15 @@ mongoose.Promise = Promise;
 mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri);
 mongoose.data = mongoose.createConnection(config.mongo.data.uri);
 
-const Web3 = require('web3'),
-  web3 = new Web3(),
+const web3 = config.nodered.functionGlobalContext.web3,
   clearMongoAccounts = require('./helpers/clearMongoAccounts'),
   clearQueues = require('./helpers/clearQueues'),
   saveAccountForAddress = require('./helpers/saveAccountForAddress'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
   request = require('request'),
+  authRequest = require('./helpers/authRequest'),
   net = require('net'),
+  accountModel = require('../models/accountModel'),
   moment = require('moment'),
   amqp = require('amqplib'),
   createTestEvents = require('./helpers/createTestEvents'),
@@ -43,9 +44,6 @@ describe('core/rest', function () {
   before(async () => {
     ctx.amqp.instance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
     await clearQueues(ctx.amqp.instance);
-
-    let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
-    web3.setProvider(provider);
 
     ctx.accounts = await Promise.promisify(web3.eth.getAccounts)();
     await clearMongoAccounts();
@@ -64,11 +62,84 @@ describe('core/rest', function () {
     await clearQueues(ctx.amqp.instance);
   });
 
+  it('address/create from post request', async () => {
+    const newAddress = `${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
+
+    await new Promise((res, rej) => {
+      request({
+        url: `http://localhost:${config.rest.port}/addr/`,
+        method: 'POST',
+        json: {address: newAddress}
+      }, async (err, resp) => {
+        if (err || resp.statusCode !== 200)
+          return rej(err || resp);
+        await Promise.delay(2000);
+        const account = await accountModel.findOne({address: newAddress});
+        expect(account).not.to.be.null;
+        expect(account.isActive).to.be.true;
+        res();
+      });
+    });
+  });
+
+  it('address/create from rabbitmq (not waves address) and check that all right', async () => {
+
+    const newAddress = ctx.accounts[1];
+    const channel = await ctx.amqp.instance.createChannel();
+    const info = {'nem-address': newAddress, user: 1};
+    await channel.publish('profiles', 'address.created', new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(2000);
+    const acc = await accountModel.findOne({address: newAddress});
+    expect(acc).to.be.equal(null);
+  });
+
+
+  it('address/create from rabbitmq and check send event user.created in internal', async () => {
+
+    const newAddress = ctx.accounts[1];
+    await new Promise.all([
+      (async () => {
+        const channel = await ctx.amqp.instance.createChannel();
+        const info = {'eth-address': newAddress, user: 1};
+        await channel.publish('profiles', 'address.created', new Buffer(JSON.stringify(info)));
+      })(),
+      (async () => {
+        const channel = await ctx.amqp.instance.createChannel();
+        await channel.assertExchange('internal', 'topic', {durable: false});
+        await channel.assertQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`);
+        await channel.bindQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, 'internal', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_user.created`);
+        channel.consume(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, async (message) => {
+          const content = JSON.parse(message.content);
+          expect(content.address).to.be.equal(newAddress);
+        }, {noAck: true});
+    
+        const acc = await accountModel.findOne({address: newAddress});
+        expect(acc.address).to.be.equal(newAddress);
+      })()
+    ]);
+
+  });
+
+  it('address/delete from rabbitmq and check send event user.created in internal', async () => {
+
+    const newAddress = ctx.accounts[1];
+    const channel = await ctx.amqp.instance.createChannel();
+    const info = {'eth-address': newAddress, user: 1};
+    await channel.publish('profiles', 'address.deleted', new Buffer(JSON.stringify(info)));
+
+    await Promise.delay(2000);
+
+    const acc = await accountModel.findOne({address: newAddress});
+    expect(acc.isActive).to.be.equal(false);
+  });
+
+
   it('validate all event routes', async () => {
     await Promise.all(
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
-          request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
+          authRequest(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) => {
             err || resp.statusCode !== 200 ? rej(err || resp) : res()
           })
         })
@@ -76,110 +147,11 @@ describe('core/rest', function () {
     );
   });
 
-  it('address/create from post request', async () => {
-    const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    ctx.accounts.push(newAddress);
-
-    await new Promise.all([
-      (async () => {
-        await new Promise((res, rej) => {
-          request({
-            url: `http://localhost:${config.rest.port}/addr/`,
-            method: 'POST',
-            json: {address: newAddress}
-          }, async (err, resp) => {
-            if (err || resp.statusCode !== 200)
-              return rej(err || resp);
-            const account = await getAccountFromMongo(newAddress);
-            expect(account).not.to.be.null;
-            expect(account.isActive).to.be.true;
-            res();
-          });
-        });
-      })(),
-      (async () => {
-        const channel = await ctx.amqp.instance.createChannel();
-        await channel.assertExchange('internal', 'topic', {durable: false});
-        await channel.assertQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`);
-        await channel.bindQueue(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, 'internal', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_user.created`);
-        return await new Promise(res => channel.consume(`${config.nodered.functionGlobalContext.settings.rabbit.serviceName}_test.user`, async (message) => {
-          const content = JSON.parse(message.content);
-          if (content.address === newAddress) {
-            await channel.cancel(message.fields.consumerTag);
-            await channel.close();
-            res();
-          }
-        }, {noAck: true}));
-      })()
-    ]);
-
-  });
-
-
-
-  it('address/create from rabbit mq', async () => {
-    const newAddress = `0x${_.chain(new Array(40)).map(() => _.random(0, 9)).join('').value()}`;
-    ctx.accounts.push(newAddress);
-
-    const channel = await ctx.amqp.instance.createChannel();
-    const info = {address: newAddress};
-    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.create`, new Buffer(JSON.stringify(info)));
-
-    await Promise.delay(3000);
-
-    const account = await getAccountFromMongo(newAddress);
-    expect(account).not.to.be.null;
-    expect(account.isActive).to.be.true;
-    expect(account.balance.toNumber()).to.be.equal(0);
-  });
-
-  it('address/update balance address by amqp', async () => {
-
-    const channel = await ctx.amqp.instance.createChannel();
-    const info = {address: ctx.accounts[0]};
-    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.balance`, new Buffer(JSON.stringify(info)));
-
-  });
-
-  it('address/remove by rest', async () => {
-    const removeAddress = _.pullAt(ctx.accounts, ctx.accounts.length - 1)[0];
-
-    await new Promise((res, rej) => {
-      request({
-        url: `http://localhost:${config.rest.port}/addr/`,
-        method: 'DELETE',
-        json: {address: removeAddress}
-      }, async (err, resp) => {
-        if (err || resp.statusCode !== 200) {
-          return rej(err || resp);
-        }
-        const account = await getAccountFromMongo(removeAddress);
-        expect(account).not.to.be.null;
-        expect(account.isActive).to.be.false;
-        res();
-      });
-    });
-  });
-
-  it('address/remove from rabbit mq', async () => {
-    const removeAddress = _.pullAt(ctx.accounts, ctx.accounts.length - 1)[0];
-
-    const channel = await ctx.amqp.instance.createChannel();
-    const info = {address: removeAddress};
-    await channel.publish('events', `${config.nodered.functionGlobalContext.settings.rabbit.serviceName}.account.delete`, new Buffer(JSON.stringify(info)));
-
-    await Promise.delay(3000);
-
-    const account = await getAccountFromMongo(removeAddress);
-    expect(account).not.to.be.null;
-    expect(account.isActive).to.be.false;
-  });
-
   it('address/balance by rest', async () => {
     const address = ctx.accounts[0];
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/addr/${address}/balance`,
         method: 'GET',
       }, async (err, resp) => {
@@ -206,7 +178,7 @@ describe('core/rest', function () {
     await Promise.delay(30000);
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${address}/history?limit=1`,
         method: 'GET',
       }, async (err, resp) => {
@@ -234,7 +206,7 @@ describe('core/rest', function () {
     const address = ctx.accounts[3];
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${address}/history`,
         method: 'GET',
       }, async (err, resp) => {
@@ -250,7 +222,7 @@ describe('core/rest', function () {
 
   it('GET tx/:hash for transaction [0 => 1]', async () => {
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/tx/${ctx.txHash}`,
         method: 'GET',
       }, (err, resp) => {
@@ -268,7 +240,7 @@ describe('core/rest', function () {
     Promise.all(
       _.map(smEvents, (model, name) =>
         new Promise((res, rej) => {
-          request(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) =>
+          authRequest(`http://localhost:${config.rest.port}/events/${name}`, (err, resp) =>
             err || resp.statusCode !== 200 ? rej(err || resp) : res()
           );
         })
@@ -278,7 +250,7 @@ describe('core/rest', function () {
 
   it('GET events - check all events', async () => {
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/events`,
         method: 'GET'
       }, async (err, resp) => {
@@ -296,7 +268,7 @@ describe('core/rest', function () {
   it('GET events/:name - check query language - empty results', async () => {
 
     await new Promise((res, rej) => {
-      request({
+      authRequest({
         url: `http://localhost:${config.rest.port}/events/bla-bla`,
         method: 'GET'
       }, async (err, resp) => {
