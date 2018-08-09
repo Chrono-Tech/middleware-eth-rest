@@ -10,20 +10,16 @@
  * @returns {Object} Configuration
  */
 require('dotenv').config();
+
 const path = require('path'),
-  Web3 = require('web3'),
-  bunyan = require('bunyan'),
-  Promise = require('bluebird'),
   mongoose = require('mongoose'),
   _ = require('lodash'),
-  smartContracts = require('../factories/sc/smartContractsFactory'),
-  smartContractsEvents = require('../factories/sc/smartContractsEventsFactory'),
   eventToQueryConverter = require('../utils/converters/eventToQueryConverter'),
   queryResultToEventArgsConverter = require('../utils/converters/queryResultToEventArgsConverter'),
-  log = bunyan.createLogger({name: 'core.rest'}),
-  BigNumber = require('bignumber.js'),
-  net = require('net');
-
+  smartContractsPath = process.env.SMART_CONTRACTS_PATH || path.join(__dirname, '../node_modules/chronobank-smart-contracts/build/contracts'),
+  smartContracts = require('../factories/sc/smartContractsFactory')(smartContractsPath),
+  smartContractsEvents = require('../factories/sc/smartContractsEventsFactory')(smartContractsPath),
+  BigNumber = require('bignumber.js');
 
 let config = {
   mongo: {
@@ -37,10 +33,9 @@ let config = {
       useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
     }
   },
-  web3: {
-    networkId: parseInt(process.env.NETWORK_ID) || 4,
-    network: process.env.NETWORK || 'development',
-    uri: `${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
+  rabbit: {
+    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
   },
   rest: {
     domain: process.env.DOMAIN || 'localhost',
@@ -54,6 +49,11 @@ let config = {
     mongo: {
       uri: process.env.NODERED_MONGO_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
       collectionPrefix: process.env.NODE_RED_MONGO_COLLECTION_PREFIX || '',
+    },
+    logging: {
+      console: {
+        level: process.env.LOG_LEVEL || 'info'
+      }
     },
     migrationsInOneFile: true,
     autoSyncMigrations: process.env.NODERED_AUTO_SYNC_MIGRATIONS || true,
@@ -69,8 +69,8 @@ let config = {
         BigNumber: BigNumber,
         utils: {
           converters: {
-            eventToQueryConverter: eventToQueryConverter,
-            queryResultToEventArgsConverter: queryResultToEventArgsConverter
+            eventToQueryConverter: eventToQueryConverter(smartContractsPath),
+            queryResultToEventArgsConverter: queryResultToEventArgsConverter(smartContractsPath)
           }
         },
       },
@@ -80,7 +80,7 @@ let config = {
       },
       settings: {
         events: {
-          address: _.get(smartContracts, `MultiEventsHistory.networks.${process.env.NETWORK_ID || 4}.address`)
+          address: _.get(smartContracts, `MultiEventsHistory.networks.${process.env.SMART_CONTRACTS_NETWORK_ID || '4'}.address`)
         },
         mongo: {
           accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
@@ -95,20 +95,4 @@ let config = {
   }
 };
 
-const initWeb3Provider = (web3) => {
-
-  let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
-  web3.setProvider(provider);
-  web3.currentProvider.connection.on('error', async () => {
-    log.error('restart ipc client');
-    await Promise.delay(5000);
-    initWeb3Provider(web3);
-  });
-
-};
-
-module.exports = (() => {
-  config.nodered.functionGlobalContext.web3 = new Web3();
-  initWeb3Provider(config.nodered.functionGlobalContext.web3);
-  return config;
-})();
+module.exports = config;

@@ -1,6 +1,6 @@
 const _ = require('lodash'),
   BigNumber = require('bignumber.js'),
-  smEvents = require('../../factories/sc/smartContractsEventsFactory');
+  smEventsFactory = require('../../factories/sc/smartContractsEventsFactory');
 
 const getTopic = arg => {
   let bn = BigNumber();
@@ -14,7 +14,7 @@ const getTopic = arg => {
 };
 
 
-module.exports = (eventName, queryResults) => {
+const converter = (smEvents, eventName, queryResults) => {
 
   const signatures = _.chain(queryResults)
     .map(result => result.signature)
@@ -67,7 +67,8 @@ module.exports = (eventName, queryResults) => {
         if (!definition)
           return {};
 
-        let value = getTopic(arg);
+
+        let value = _.isString(arg) ? arg : getTopic(arg);
 
         if (new RegExp(/uint/).test(definition.type))
           value = BigNumber(value, 16);
@@ -77,7 +78,10 @@ module.exports = (eventName, queryResults) => {
       })
       .transform((result, value) => _.merge(result, value), {})
       .merge({
-        event: eventsMap[item.signature].name,
+        event: {
+          name: eventsMap[item.signature].name,
+          signature: item.signature
+        },
         includedIn: {
           blockNumber: item.blockNumber,
           txIndex: item.txIndex,
@@ -87,4 +91,10 @@ module.exports = (eventName, queryResults) => {
       .value()
   );
 
+};
+
+
+module.exports = (smPath)=>{
+  const smEvents = smEventsFactory(smPath);
+  return converter.bind(this, smEvents);
 };

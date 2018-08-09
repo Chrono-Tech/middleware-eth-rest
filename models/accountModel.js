@@ -12,8 +12,7 @@
 
 const mongoose = require('mongoose'),
   config = require('../config'),
-  messages = require('middleware_service.sdk').factories.messages.addressMessageFactory;
-require('mongoose-long')(mongoose);
+  messages = require('middleware-common-components/factories/messages/addressMessageFactory');
 
 /**
  * Account model definition
@@ -31,10 +30,10 @@ const Account = new mongoose.Schema({
     type: String,
     validate: [a=>  /^[0-9A-Z]{40}$/.test(a), messages.wrongAddress]
   },
-  balance: {type: mongoose.Schema.Types.Long, default: 0},
+  balance: {type: String, default: '0'},
   created: {type: Date, required: true, default: Date.now},
   isActive: {type: Boolean, required: true, default: true},
-  erc20token: {type: mongoose.Schema.Types.Mixed, default: {}}
+  erc20token: {type: mongoose.Schema.Types.Mixed, default: []}
 });
 
 
