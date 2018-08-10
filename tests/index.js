@@ -27,11 +27,8 @@ const Web3 = require('web3'),
   getAccountFromMongo = require('./helpers/getAccountFromMongo'),
   request = require('request'),
   net = require('net'),
-  moment = require('moment'),
   amqp = require('amqplib'),
-  createTestEvents = require('./helpers/createTestEvents'),
   smEvents = require('../factories/sc/smartContractsEventsFactory'),
-  getEventFromSmEvents = require('./helpers/getEventFromSmEvents'),
   ctx = {
     accounts: [],
     amqp: {},
@@ -44,7 +41,15 @@ describe('core/rest', function () {
     ctx.amqp.instance = await amqp.connect(config.nodered.functionGlobalContext.settings.rabbit.url);
     await clearQueues(ctx.amqp.instance);
 
-    let provider = new Web3.providers.IpcProvider(config.web3.uri, net);
+    const providerURIs = _.chain(process.env.PROVIDERS).split(',')
+      .map(provider => provider.trim())
+      .filter(provider => provider.length)
+      .thru(prov => prov.length ? prov : [
+        `${process.env.WEB3_URI || `/tmp/${(process.env.NETWORK || 'development')}/geth.ipc`}`
+      ])
+      .value();
+
+    let provider = new Web3.providers.IpcProvider(`${/^win/.test(process.platform) ? '\\\\.\\pipe\\' : ''}${providerURIs[0]}`, net);
     web3.setProvider(provider);
 
     ctx.accounts = await Promise.promisify(web3.eth.getAccounts)();
@@ -130,7 +135,7 @@ describe('core/rest', function () {
     const account = await getAccountFromMongo(newAddress);
     expect(account).not.to.be.null;
     expect(account.isActive).to.be.true;
-    expect(account.balance.toNumber()).to.be.equal(0);
+    expect(parseInt(account.balance)).to.be.equal(0);
   });
 
   it('address/update balance address by amqp', async () => {
