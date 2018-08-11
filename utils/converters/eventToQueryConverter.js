@@ -216,7 +216,6 @@ const converter = (smEvents, eventName, query, useSchemaFields = true) => {
       });
 
       if (criteria) {
-        criteria.address = smEvents.address;
         criteria.signature = event.signature;
       }
       return criteria;
