@@ -29,8 +29,7 @@ let config = {
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
-      useData: process.env.USE_MONGO_DATA ? parseInt(process.env.USE_MONGO_DATA) : 1
+      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
     }
   },
   rabbit: {
@@ -43,7 +42,7 @@ let config = {
     auth: process.env.USE_AUTH || false
   },
   smartContracts: {
-    path: process.env.SMART_CONTRACTS_PATH || path.join(__dirname, '../node_modules/chronobank-smart-contracts/build/contracts')
+    path: process.env.SMART_CONTRACTS_PATH ? path.normalize(process.env.SMART_CONTRACTS_PATH) : path.join(__dirname, '../node_modules/chronobank-smart-contracts/build/contracts')
   },
   nodered: {
     mongo: {
