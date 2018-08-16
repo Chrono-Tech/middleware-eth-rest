@@ -3,6 +3,7 @@
  * Licensed under the AGPL Version 3 license.
  * @author Kirill Sergeev <cloudkserg11@gmail.com>
  */
+const Promise = require('bluebird');
 module.exports = async (processPid) => {
   if (processPid.killed)
     return true;
