@@ -58,4 +58,4 @@ TxLog.index({blockNumber: 1, txIndex: 1, index: 1});
 TxLog.index({signature: 1});
 TxLog.index({'args.e': 1, 'args.c': 1, 'args.index': 1}, {sparse: true});
 
-module.exports = mongoose.data.model(`${config.mongo.data.collectionPrefix}TxLog`, TxLog);
+module.exports = () => mongoose.data.model(`${config.mongo.data.collectionPrefix}TxLog`, TxLog);
