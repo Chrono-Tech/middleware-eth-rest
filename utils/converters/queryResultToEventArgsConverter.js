@@ -55,15 +55,15 @@ const converter = (smEvents, eventName, queryResults) => {
       .value();
   }, {});
 
-  return queryResults.map(item =>
+  return queryResults
+    .filter(item => eventsMap[item.signature] !== undefined)
+    .map(item =>
     _.chain(item.args)
       .map((arg, index) => {
-
         let topicIndex = indexedMap[item.signature][index];
 
 
         const definition = eventsMap[item.signature].inputs[topicIndex];
-
         if (!definition)
           return {};
 

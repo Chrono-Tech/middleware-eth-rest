@@ -11,6 +11,7 @@ const config = require('../config'),
   models = require('../models'),
   spawn = require('child_process').spawn,
   _ = require('lodash'),
+  blocksTests = require('./blocks'),
   fuzzTests = require('./fuzz'),
   performanceTests = require('./performance'),
   featuresTests = require('./features'),
@@ -35,28 +36,20 @@ describe('core/ethRest', function () {
     await ctx.amqp.channel.assertExchange('profiles', 'fanout', {durable: true});
     await ctx.amqp.channel.close();
 
-    ctx.laborxPid = spawn('node', ['tests/utils/laborxProxy.js'], {
-      env: process.env, stdio: 'ignore'
-    });
-    await Promise.delay(10000);
+     ctx.laborxPid = spawn('node', ['tests/utils/laborxProxy.js'], {
+       env: process.env, stdio: 'ignore'
+     });
+     await Promise.delay(10000);
   });
 
   after (async () => {
     mongoose.disconnect();
     await ctx.amqp.instance.close();
-    await ctx.laborxPid.kill();
+     await ctx.laborxPid.kill();
   });
 
-
-
-
-
+  describe('blocks', () => blocksTests(ctx));
   describe('features', () => featuresTests(ctx));
-
   describe('fuzz', () => fuzzTests(ctx));
-
-
   describe('performance', () => performanceTests(ctx));
-
-
 });
