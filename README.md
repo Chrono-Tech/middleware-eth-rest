@@ -78,6 +78,8 @@ The options are presented below:
 | MONGO_COLLECTION_PREFIX   | the default prefix for all mongo collections. The default value is 'eth'
 | MONGO_ACCOUNTS_URI   | the URI string for mongo connection, which holds users accounts (if not specified, then default MONGO_URI connection will be used)
 | MONGO_ACCOUNTS_COLLECTION_PREFIX   | the collection prefix for accounts collection in mongo (If not specified, then the default MONGO_COLLECTION_PREFIX will be used)
+| MONGO_PROFILE_URI   | the URI string for mongo connection, which holds profile accounts (if not specified, then default MONGO_URI connection will be used) [for token from laborx]
+| MONGO_PROFILE_COLLECTION_PREFIX   | the collection prefix for profile collection in mongo (If not specified, then the default MONGO_COLLECTION_PREFIX will be used) [for token from laborx]
 | MONGO_DATA_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
 | MONGO_DATA_COLLECTION_PREFIX   | the collection prefix for data collections in mongo (If not specified, then the default MONGO_COLLECTION_PREFIX will be used)
 | NODERED_MONGO_URI   | the URI string for mongo connection, which holds data collections (for instance, processed block's height). In case, it's not specified, then default MONGO_URI connection will be used)
@@ -88,6 +90,9 @@ The options are presented below:
 | SMART_CONTRACTS_PATH   | the path to compiled smart contracts (optional, if omitted - then the default dir from node_modules will be used)
 | NODERED_AUTO_SYNC_MIGRATIONS   | autosync migrations on start (default = yes)
 | HTTP_ADMIN | admin path for nodered or false (if not publish as default)
+| LABORX | url for laborxAuth [default=http://localhost:3001/api/v1/security]
+| LABORX_RABBIT_SERVICE_NAME | service name for laborx[exchange=events] in rabbitMq 
+| LABORX_RABBIT_URI | rabbit uri for laborx [exchange=events]
 
 License
 ----
