@@ -154,6 +154,7 @@ function replace(criteria) {
 
 
 const converter = (smEvents, eventName, query, useSchemaFields = true) => {
+  if (!smEvents || !eventName || !query) throw new Error('not send three function arguments');
 
   eventName = eventName.toLowerCase();
 
@@ -215,9 +216,8 @@ const converter = (smEvents, eventName, query, useSchemaFields = true) => {
         return {arg: topicToArg(val, eventParamIndex), converted: true};
       });
 
-      if (criteria) {
+      if (criteria) 
         criteria.signature = event.signature;
-      }
       return criteria;
     })
     .filter(criteria => criteria)

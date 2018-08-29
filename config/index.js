@@ -19,23 +19,32 @@ const path = require('path'),
   smartContractsPath = process.env.SMART_CONTRACTS_PATH || path.join(__dirname, '../node_modules/chronobank-smart-contracts/build/contracts'),
   smartContracts = require('../factories/sc/smartContractsFactory')(smartContractsPath),
   smartContractsEvents = require('../factories/sc/smartContractsEventsFactory')(smartContractsPath),
-  BigNumber = require('bignumber.js');
+  BigNumber = require('bignumber.js'),
+  accountPrefix = process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+  profilePrefix = process.env.MONGO_PROFILE_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+  collectionPrefix = process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
+  rabbit = {
+    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
+    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
+  };
+
 
 let config = {
   mongo: {
     accounts: {
       uri: process.env.MONGO_ACCOUNTS_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+      collectionPrefix: accountPrefix
+    },
+    profile: {
+      uri: process.env.MONGO_PROFILE_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
+      collectionPrefix: profilePrefix
     },
     data: {
       uri: process.env.MONGO_DATA_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/data',
-      collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+      collectionPrefix
     }
   },
-  rabbit: {
-    url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-    serviceName: process.env.RABBIT_SERVICE_NAME || 'app_bitcoin'
-  },
+  rabbit,
   rest: {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081,
@@ -82,12 +91,16 @@ let config = {
           address: _.get(smartContracts, `MultiEventsHistory.networks.${process.env.SMART_CONTRACTS_NETWORK_ID || '4'}.address`)
         },
         mongo: {
-          accountPrefix: process.env.MONGO_ACCOUNTS_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth',
-          collectionPrefix: process.env.MONGO_DATA_COLLECTION_PREFIX || process.env.MONGO_COLLECTION_PREFIX || 'eth'
+          accountPrefix,
+          collectionPrefix
         },
-        rabbit: {
-          url: process.env.RABBIT_URI || 'amqp://localhost:5672',
-          serviceName: process.env.RABBIT_SERVICE_NAME || 'app_eth'
+        rabbit,
+        laborx: {
+          url: process.env.LABORX_RABBIT_URI || 'amqp://localhost:5672',
+          serviceName: process.env.LABORX_RABBIT_SERVICE_NAME || '',
+          authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
+          profileModel: profilePrefix + 'Profile',
+          dbAlias: 'profile'
         }
       }
     }
