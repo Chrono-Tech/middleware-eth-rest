@@ -8,24 +8,15 @@ const config = require('../config'),
   Promise = require('bluebird'),
   request = require('request-promise'),
   models = require('../../models'),
+  generateAddress = require('../utils/address/generateAddress'),
   killProcess = require('../helpers/killProcess'),
   expect = require('chai').expect,
-  url = config.dev.url,
-
   authTests = require('./auth'),
   addressTests = require('./address');
-
-
-
-const generateAddress  = (name) => name.concat('a'.repeat(40-name.length)).toLowerCase()
-const getAuthHeaders = () => { return {'Authorization': 'Bearer ' + config.dev.laborx.token}; }
 
 module.exports = (ctx) => {
 
   before (async () => {
-    ctx.amqp.channel = await ctx.amqp.instance.createChannel();
-    ctx.amqp.channel.prefetch(1);
-    
     await models.txModel.remove();
     await models.blockModel.remove();
 
@@ -33,12 +24,8 @@ module.exports = (ctx) => {
     await Promise.delay(10000);
   });
 
-  after ('kill environment', async () => {
-    await ctx.amqp.channel.close();
-    await killProcess(ctx.restPid);
-  });
-
    describe('auth', () => authTests(ctx));
+
    describe('address', () => addressTests(ctx));
 
   it('kill rest server and up already - work GET /tx/:hash', async () => {
@@ -47,33 +34,41 @@ module.exports = (ctx) => {
     await Promise.delay(10000);
 
     const hash = 'TESTHASH2';
-    const address = generateAddress('ffff');
-    await models.txModel.findOneAndUpdate({'_id': hash}, {
-      from: address,
-      to: generateAddress('fffaa'),
+    const fromAddress = generateAddress();
+    const toAddress = generateAddress();
+
+    await models.txModel.update({'_id': hash}, {
+      from: fromAddress,
+      to: toAddress,
       blockNumber: 5
-    }, {upsert: true, new: true});
-    await models.blockModel.findOneAndUpdate({'_id': 'sdfsdfsdf'}, {
+    }, {upsert: true});
+
+    await models.blockModel.update({'_id': 'sdfsdfsdf'}, {
       number: 5,
       timestamp: 5
-    }, {upsert: true, new: true});
+    }, {upsert: true});
   
-    const response = await request(`${url}/tx/${hash}`, {
+    const response = await request(`http://localhost:${config.rest.port}/tx/${hash}`, {
       method: 'GET',
       json: true,
-      headers: getAuthHeaders()
-    }).catch(e => e);
+      headers: {
+        Authorization: `Bearer ${config.dev.laborx.token}`
+      }
+    });
 
     expect(response).to.deep.equal({
-      "__v": 0,
-      'from': address,
-      'to': generateAddress('fffaa'),
-      'blockNumber': 5,
-      "logs": [],
-      'hash': hash,
-      'timestamp': 5
+      __v: 0,
+      from: fromAddress,
+      to: toAddress,
+      blockNumber: 5,
+      logs: [],
+      hash: hash,
+      timestamp: 5
     });
   });
 
+  after ('kill environment', async () => {
+    await ctx.restPid.kill();
+  });
 
 };

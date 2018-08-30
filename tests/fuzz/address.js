@@ -20,9 +20,9 @@ module.exports = (ctx) => {
 
 
   it('send wrong address.created from laborx - not get message about account', async () => {
-    const address = 'testaddress4';
-    await ctx.amqp.channel.assertQueue('test_addr4', {autoDelete: true, durable: false, noAck: true});
-    await ctx.amqp.channel.bindQueue('test_addr4', 'events', `${config.rabbit.serviceName}.account.created`);
+    const address = 'badaddress';
+    await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
+    await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.created`);
    
 
     await Promise.all([
@@ -32,19 +32,29 @@ module.exports = (ctx) => {
       })(),
 
       (async () => {
-        const result = await new Promise(res => ctx.amqp.channel.consume('test_addr4', (msg) => {
-          ctx.amqp.channel.cancel(msg.fields.consumerKey);
+        const result = await new Promise(res => ctx.amqp.channel.consume('test_addr', async (msg) => {
+
+          if(!msg)
+            return;
+
+          const content = JSON.parse(msg.content);
+          if(content.address !== address)
+            return;
+
           res('CREATED');
         })).timeout(3000).catch(() => 'TIMEOUT');
+
+
+        await ctx.amqp.channel.deleteQueue('test_addr');
         expect(result).to.equal('TIMEOUT');
       })()
     ]);
   });
 
   it('send wrong address.deleted from laborx - not get message about account', async () => {
-    const address = 'testaddress4';
-    await ctx.amqp.channel.assertQueue('test_addr4', {autoDelete: true, durable: false, noAck: true});
-    await ctx.amqp.channel.bindQueue('test_addr4', 'events', `${config.rabbit.serviceName}.account.deleted`);
+    const address = 'badaddress';
+    await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
+    await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
     
  
     await Promise.all([
@@ -54,10 +64,11 @@ module.exports = (ctx) => {
       })(),
  
       (async () => {
-        const result = await new Promise(res => ctx.amqp.channel.consume('test_addr4', (msg) => {
-          ctx.amqp.channel.cancel(msg.fields.consumerKey);
+        const result = await new Promise(res => ctx.amqp.channel.consume('test_addr', () => {
           res('DELETED');
         })).timeout(3000).catch(() => 'TIMEOUT');
+
+        await ctx.amqp.channel.deleteQueue('test_addr');
         expect(result).to.equal('TIMEOUT');
       })()
     ]);

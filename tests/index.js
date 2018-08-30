@@ -34,22 +34,23 @@ describe('core/ethRest', function () {
     ctx.amqp.channel = await ctx.amqp.instance.createChannel();
     await ctx.amqp.channel.assertExchange('events', 'topic', {durable: false});
     await ctx.amqp.channel.assertExchange('profiles', 'fanout', {durable: true});
-    await ctx.amqp.channel.close();
 
-     ctx.laborxPid = spawn('node', ['tests/utils/laborxProxy.js'], {
+     ctx.laborxPid = spawn('node', ['tests/utils/laborx/laborxProxy.js'], {
        env: process.env, stdio: 'ignore'
      });
      await Promise.delay(10000);
   });
 
-  after (async () => {
-    mongoose.disconnect();
-    await ctx.amqp.instance.close();
-     await ctx.laborxPid.kill();
-  });
 
   describe('blocks', () => blocksTests(ctx));
   describe('features', () => featuresTests(ctx));
   describe('fuzz', () => fuzzTests(ctx));
   describe('performance', () => performanceTests(ctx));
+
+  after (async () => {
+    mongoose.disconnect();
+    await ctx.amqp.instance.close();
+    await ctx.laborxPid.kill();
+  });
+
 });

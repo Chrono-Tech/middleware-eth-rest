@@ -5,7 +5,7 @@
  */
 const express = require('express'),
   app = express(),
-  config = require('../config');
+  config = require('../../config');
 
 const laborx = config.dev.laborx;
 // respond with "hello world" when a GET request is made to the homepage
@@ -15,7 +15,7 @@ app.post('/api/v1/security/signin/signature/chronomint', function (req, res) {
   const params = req.headers.authorization.split(' ');
   if (params[0] === 'Bearer' && params[1] === laborx.token) {
     res.status(200).send(JSON.stringify({
-      'addresses': {
+      addresses: {
         'ethereum-public-key': laborx.key,
         'eth-address': 'adasdasd'
       }

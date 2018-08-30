@@ -10,18 +10,16 @@ const addressTests = require('./address'),
 
 module.exports = (ctx) => {
   before(async () => {
-    ctx.amqp.channel = await ctx.amqp.instance.createChannel();
-    ctx.amqp.channel.prefetch(1);
-
     ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
-    await Promise.delay(10000);
+    await Promise.delay(15000);
   });
 
-  describe('tx', () => txTests(ctx));
-  describe('address', () => addressTests(ctx));
+  describe('tx endpoints', () => txTests(ctx));
+
+  describe('address endpoints', () => addressTests(ctx));
 
   after('kill environment', async () => {
-    await ctx.amqp.channel.close();
     ctx.restPid.kill();
+    delete ctx.restPid;
   });
 };
