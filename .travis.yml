@@ -10,28 +10,17 @@ services:
   - rabbitmq
 
 before_install:
+  - export LABORX_USE_AUTH=1
   - mongo data --eval 'db.dropDatabase();'
   - sudo apt-get update
   - sudo apt-get install python2.7 git-all pkg-config libncurses5-dev libssl-dev libnss3-dev libexpat-dev libc6-dev -y
 
 
 install:
-  - sudo rabbitmq-plugins enable rabbitmq_web_stomp
   - npm install
-  - npm install -g pm2
-
-before_script:
-    - cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && npm install
-    - cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && pm2 start ipcConverter.js
-    - sleep 30 && cd $TRAVIS_BUILD_DIR/node_modules/middleware_eth.blockProcessor && pm2 start index.js
-    - sleep 20 && cd $TRAVIS_BUILD_DIR && pm2 start index.js
 
 script:
-  - sleep 60 && npm test -- --coverage
-
-after_script:
-  - pm2 logs --nostream
-  - pm2 kill && pkill PM2
+  - npm test -- --coverage
 
 after_success:
   - FULL_GCR_KEY="-----BEGIN PRIVATE KEY-----\n"$GCR_KEY"\n-----END PRIVATE KEY-----\n"
