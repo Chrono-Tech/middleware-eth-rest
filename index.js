@@ -16,7 +16,7 @@ const config = require('./config'),
   bunyan = require('bunyan'),
   migrator = require('middleware_service.sdk').migrator,
   _ = require('lodash'),
-  log = bunyan.createLogger({name: 'core.rest'}),
+  log = bunyan.createLogger({name: 'core.rest', level: config.nodered.logging.console.level}),
   models = require('./models'),
   redInitter = require('middleware_service.sdk').init;
 
@@ -26,17 +26,18 @@ mongoose.accounts = mongoose.createConnection(config.mongo.accounts.uri, {useMon
 mongoose.profile = mongoose.createConnection(config.mongo.profile.uri, {useMongoClient: true});
 mongoose.data = mongoose.createConnection(config.mongo.data.uri, {useMongoClient: true});
 
-_.chain([mongoose.accounts, mongoose.data, mongoose.profile])
-  .compact().forEach(connection =>
-    connection.on('disconnected', function () {
-      log.error('mongo disconnected!');
-      process.exit(0);
-    })
-  ).value();
 
-models.init();
 
 const init = async () => {
+
+  _.chain([mongoose.accounts, mongoose.data, mongoose.profile])
+    .compact().forEach(connection =>
+      connection.on('disconnected', function () {
+        throw new Error('mongo disconnected!');
+      })
+    ).value();
+
+  models.init();
 
   if (config.nodered.autoSyncMigrations)
     await migrator.run(
