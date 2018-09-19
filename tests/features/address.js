@@ -285,7 +285,7 @@ module.exports = (ctx) => {
           }));
           const account = await models.accountModel.findOne({address});
           expect(account.isActive).to.equal(false);
-        })
+        })()
       ]);
     });
 

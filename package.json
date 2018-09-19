@@ -2,8 +2,10 @@
   "name": "middleware_eth.rest",
   "version": "1.0.0",
   "main": "index.js",
+  "requirements": {},
   "dependencies": {
-    "middleware-common-components": "github:ChronoBank/middleware-common-components",
+    "middleware-common-infrastructure": "github:ChronoBank/middleware-common-infrastructure",
+    "middleware_common_infrastructure": "^1.0.0",
     "bcryptjs": "^2.4.3",
     "bignumber.js": "^7.2.1",
     "bluebird": "^3.5.1",
