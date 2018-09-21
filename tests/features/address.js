@@ -262,7 +262,8 @@ module.exports = (ctx) => {
     });
 
     it('send message address.deleted from laborx about not exist addr - get account.deleted event', async () => {
-      const address = generateAddress();
+      let address = generateAddress();
+      address[2] = '9';
 
       await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
       await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
