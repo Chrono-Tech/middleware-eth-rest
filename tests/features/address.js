@@ -279,6 +279,7 @@ module.exports = (ctx) => {
               return;
 
             const content = JSON.parse(msg.content);
+            console.log(content);
             expect(content.length).to.equal(0);
             await ctx.amqp.channel.deleteQueue('test_addr');
             res();
