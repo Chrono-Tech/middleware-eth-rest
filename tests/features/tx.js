@@ -41,7 +41,7 @@ module.exports = (ctx) => {
     const address = generateAddress();
     await models.txModel.findOneAndUpdate({'_id': hash}, {
       from: address,
-      to: generateAddress('ffff1'),
+      to: generateAddress(),
       blockNumber: 5
     }, {upsert: true});
 
@@ -114,10 +114,10 @@ module.exports = (ctx) => {
   });
 
   it('GET /tx/:addr/history with non exist address - get []', async () => {
-    const address = generateAddress('ffff');
+    const address = generateAddress();
 
     await models.txModel.update({'_id': 'HASHES'}, {
-      recipient: generateAddress('ffff2'),
+      recipient: generateAddress(),
       timestamp: 1,
       blockNumber: 5
     }, {upsert: true});
