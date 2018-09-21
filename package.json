@@ -4,7 +4,7 @@
   "main": "index.js",
   "requirements": {},
   "dependencies": {
-    "middleware_common_infrastructure": "^1.0.0",
+    "middleware_common_infrastructure": "^1.0.2",
     "bcryptjs": "^2.4.3",
     "bignumber.js": "^7.2.1",
     "bluebird": "^3.5.1",
