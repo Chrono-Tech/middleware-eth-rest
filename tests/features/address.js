@@ -275,7 +275,7 @@ module.exports = (ctx) => {
         (async () => {
           await new Promise(res => ctx.amqp.channel.consume('test_addr',  async msg => {
 
-            if(!msg)
+            if(!msg || !msg.content)
               return;
 
             const content = JSON.parse(msg.content);
