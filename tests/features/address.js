@@ -283,8 +283,6 @@ module.exports = (ctx) => {
             await ctx.amqp.channel.deleteQueue('test_addr');
             res();
           }));
-          const account = await models.accountModel.findOne({address});
-          expect(account.isActive).to.equal(false);
         })()
       ]);
     });
