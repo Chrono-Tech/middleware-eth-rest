@@ -93,6 +93,8 @@ The options are presented below:
 | LABORX | url for laborxAuth [default=http://localhost:3001/api/v1/security]
 | LABORX_RABBIT_SERVICE_NAME | service name for laborx[exchange=events] in rabbitMq 
 | LABORX_RABBIT_URI | rabbit uri for laborx [exchange=events]
+| LABORX_USE_AUTH | use laborx auth or not (default=true)
+| LABORX_USE_CACHE | use laborx auth cache in mongo or not (default=true)
 | SYSTEM_RABBIT_URI   | rabbitmq URI connection string for infrastructure
 | SYSTEM_RABBIT_SERVICE_NAME   | rabbitmq service name for infrastructure
 | SYSTEM_RABBIT_EXCHANGE   | rabbitmq exchange name for infrastructure
