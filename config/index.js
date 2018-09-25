@@ -45,6 +45,12 @@ let config = {
     }
   },
   rabbit,
+  systemRabbit: {
+    url: process.env.SYSTEM_RABBIT_URI || process.env.RABBIT_URI || 'amqp://localhost:5672',
+    exchange: process.env.SYSTEM_RABBIT_EXCHANGE || 'internal',
+    serviceName: process.env.SYSTEM_RABBIT_SERVICE_NAME || 'system' 
+  },
+  checkSystem: process.env.CHECK_SYSTEM ? parseInt(process.env.CHECK_SYSTEM) : true,
   rest: {
     domain: process.env.DOMAIN || 'localhost',
     port: parseInt(process.env.REST_PORT) || 8081,
@@ -96,11 +102,12 @@ let config = {
         },
         rabbit,
         laborx: {
-          useAuth: process.env.LABORX_USE_AUTH ? parseInt(process.env.LABORX_USE_AUTH) : false,
           url: process.env.LABORX_RABBIT_URI || 'amqp://localhost:5672',
           serviceName: process.env.LABORX_RABBIT_SERVICE_NAME || '',
           authProvider: process.env.LABORX || 'http://localhost:3001/api/v1/security',
           profileModel: profilePrefix + 'Profile',
+          useAuth: process.env.LABORX_USE_AUTH ? parseInt(process.env.LABORX_USE_AUTH) : false,
+          useCache: process.env.LABORX_USE_CACHE ? parseInt(process.env.LABORX_USE_CACHE) : true,
           dbAlias: 'profile'
         }
       }
