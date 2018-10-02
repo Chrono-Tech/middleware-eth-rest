@@ -262,7 +262,7 @@ module.exports = (ctx) => {
     });
 
     it('send message address.deleted from laborx about not exist addr - get account.deleted event', async () => {
-      const address = generateAddress();
+      let address = generateAddress();
 
       await ctx.amqp.channel.assertQueue('test_addr', {autoDelete: true, durable: false, noAck: true});
       await ctx.amqp.channel.bindQueue('test_addr', 'events', `${config.rabbit.serviceName}.account.deleted`);
@@ -275,17 +275,15 @@ module.exports = (ctx) => {
         (async () => {
           await new Promise(res => ctx.amqp.channel.consume('test_addr',  async msg => {
 
-            if(!msg)
+            if(!msg || !msg.content)
               return;
 
             const content = JSON.parse(msg.content);
-            expect(content.length).to.equal(0);
+            expect(content.address).to.equal(address);
             await ctx.amqp.channel.deleteQueue('test_addr');
             res();
           }));
-          const account = await models.accountModel.findOne({address});
-          expect(account.isActive).to.equal(false);
-        })
+        })()
       ]);
     });
 
