@@ -20,7 +20,8 @@ const Block = new mongoose.Schema({
   number: {type: Number, unique: true, index: true},
   timestamp: {type: Number, required: true},
   uncleAmount: {type: Number, required: true},
-  totalTxFee: {type: mongoose.Schema.Types.Long, required: true},
+  totalTxFee: {type: String, required: true},
+  miner: {type: String, required: true},
   created: {type: Date, required: true, default: Date.now}
 }, {_id: false});
 

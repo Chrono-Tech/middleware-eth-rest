@@ -1,6 +1,5 @@
 const _ = require('lodash'),
-  BigNumber = require('bignumber.js'),
-  smEventsFactory = require('../../factories/sc/smartContractsEventsFactory');
+  BigNumber = require('bignumber.js');
 
 const getTopic = arg => {
   let bn = BigNumber();
@@ -94,7 +93,6 @@ const converter = (smEvents, eventName, queryResults) => {
 };
 
 
-module.exports = (smPath)=>{
-  const smEvents = smEventsFactory(smPath);
+module.exports = (smEvents)=>{
   return converter.bind(this, smEvents);
 };
