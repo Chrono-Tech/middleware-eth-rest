@@ -1,12 +1,12 @@
-const contractsFactory = require('./smartContractsFactory'),
-  _ = require('lodash'),
+const _ = require('lodash'),
+  Web3 = require('web3'),
+  web3 = new Web3(),
   requireAll = require('require-all'),
   fs = require('fs');
 
 
-module.exports = scPath => {
+module.exports = (scPath, eventContract, networkId) => {
 
-  const contracts = contractsFactory(scPath);
   let contractsRaw = {};
 
   if (fs.existsSync(scPath))
@@ -15,40 +15,26 @@ module.exports = scPath => {
       filter: /(^((ChronoBankPlatformEmitter)|(?!(Emitter|Interface)).)*)\.json$/
     });
 
-  let truffleContractEvents = _.chain(contracts)
-    .toPairs()
-    .map(pair => pair[1].events)
-    .transform((result, ev) => _.merge(result, ev), {})
-    .toPairs()
-    .map(pair => {
-      let event = pair[1];
-      event.signature = pair[0];
-      return event;
-    })
-    .value();
+  const multiEventHistoryAddress = _.get(contractsRaw, `${eventContract}.networks.${networkId}.address`);
 
 
-  let rawContractEvents = _.chain(contractsRaw)
+  const contractEvents = _.chain(contractsRaw)
     .map(contract =>
-      _.chain(contract.networks)
-        .values()
-        .map(network => network.events)
-        .flattenDeep()
-        .values()
-        .transform((result, item) => _.merge(result, item), {})
-        .toPairs()
-        .map(pair => {
-          pair[1].signature = pair[0];
-          return pair[1];
+      _.chain(contract.abi)
+        .filter({type: 'event'})
+        .map(ev => {
+          ev.signature = web3.utils.sha3(`${ev.name}(${ev.inputs.map(input => input.type).join(',')})`);
+          return ev;
         })
         .value()
     )
     .flattenDeep()
-    .value();
-
-
-  return _.chain(truffleContractEvents)
-    .union(rawContractEvents)
     .uniqBy('signature')
     .value();
+
+  return {
+    events: contractEvents,
+    address: multiEventHistoryAddress.toLowerCase()
+  }
+
 };
