@@ -30,7 +30,7 @@ So, you don't need to write any code - you can create your own flow with UI tool
 | get list of all available events | /events | GET | | ``` [<String>] ```  [view example](examples/events.md)
 | get events collection | /events/{event_name} | GET | ```{event_name: <String>}``` see REST query language section | ``` [{txObj: <Object>}] ``` [view example](examples/event.md)
 | get block info | /block/{hash```|```number} | GET | ```{block: <hash|number>}``` | ``` {blockObj: <Object>} ``` [view example](examples/block.md)
-| get blocks list | /blocks | GET |  | ``` [{blockObj: <Object>}] ``` [view example](examples/blocks.md)
+| get blocks list | /blocks/history | GET |  | ``` [{blockObj: <Object>}] ``` [view example](examples/blocks.md)
 
 
 #### REST guery language
