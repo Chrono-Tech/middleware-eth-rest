@@ -25,18 +25,18 @@ module.exports = (ctx) => {
   });
 
    it('converterGen/call result without args -  get []', async () => {
-     const query = converterGen('../../../factories/sc');
+     const query = converterGen(events);
      expect(query).instanceof(Function);
      expect(query()).deep.equal([]);
    });
   
    it('converterGen/call result with empty arg - get []', async () => {
-     const query = converterGen('../../../factories/sc');
+     const query = converterGen(events);
      expect(query('', {'abba': 1})).deep.equal([]);
    });
   
    it('conveterGen/call converter on empty folder and call function with unknown arg - get []', async () => {
-     const query = converterGen('../../../factories/sc');
+     const query = converterGen(events);
      expect(query('sdfsdf', {})).deep.equal([]);
    });
   
