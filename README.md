@@ -29,15 +29,8 @@ So, you don't need to write any code - you can create your own flow with UI tool
 | mark an address as inactive and stop perform any actions for this address. | /addr | DELETE | ``` {address: <string>} ``` | ``` {code: <Number>, message: <string>} ```  <italic>Example:</italic> ```{code: 1, message: 'ok'} ```
 | get list of all available events | /events | GET | | ``` [<String>] ```  [view example](examples/events.md)
 | get events collection | /events/{event_name} | GET | ```{event_name: <String>}``` see REST query language section | ``` [{txObj: <Object>}] ``` [view example](examples/event.md)
-
-
-
-The available routes are listed below:
-
-| route | methods | params | description |
-| ------ | ------ | ------ | ------ |
-| /events   | GET | |returns list of all available events
-| /events/{event_name}   | GET | |returns an event's collection
+| get block info | /block/{hash```|```number} | GET | ```{block: <hash|number>}``` | ``` {blockObj: <Object>} ``` [view example](examples/block.md)
+| get blocks list | /blocks | GET |  | ``` [{blockObj: <Object>}] ``` [view example](examples/blocks.md)
 
 
 #### REST guery language

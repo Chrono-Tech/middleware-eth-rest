@@ -1,6 +1,5 @@
 const _ = require('lodash'),
-  BigNumber = require('bignumber.js'),
-  smEventsFactory = require('../../factories/sc/smartContractsEventsFactory');
+  BigNumber = require('bignumber.js');
 
 let schemaFields = ['blockNumber', 'txIndex', 'index', 'signature'];
 
@@ -229,7 +228,6 @@ const converter = (smEvents, eventName, query, useSchemaFields = true) => {
 };
 
 
-module.exports = (smPath)=>{
-  const smEvents = smEventsFactory(smPath);
+module.exports = (smEvents)=>{
   return converter.bind(this, smEvents);
 };

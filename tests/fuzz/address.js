@@ -28,7 +28,7 @@ module.exports = (ctx) => {
     await Promise.all([
       (async () => {
         const data = {address};
-        await ctx.amqp.channel.publish('profiles', 'address.created', new Buffer(JSON.stringify(data)));
+        await ctx.amqp.channel.publish('profiles', 'address.created', Buffer.from(JSON.stringify(data)));
       })(),
 
       (async () => {
@@ -60,7 +60,7 @@ module.exports = (ctx) => {
     await Promise.all([
       (async () => {
         const data = {address};
-        await ctx.amqp.channel.publish('profiles', 'address.deleted', new Buffer(JSON.stringify(data)));
+        await ctx.amqp.channel.publish('profiles', 'address.deleted', Buffer.from(JSON.stringify(data)));
       })(),
  
       (async () => {

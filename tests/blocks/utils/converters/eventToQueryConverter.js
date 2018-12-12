@@ -32,18 +32,18 @@ module.exports = (ctx) => {
   });
 
   it('converterGen/call result without args -  throw error', async () => {
-    const query = converterGen('../../../factories/sc');
+    const query = converterGen(config.nodered.functionGlobalContext.factories.smEvents);
     expect(query).instanceof(Function);
     expect(function () { query(); }).to.throw();
   });
 
   it('converterGen/call result with empty arg - throw error', async () => {
-    const query = converterGen('../../../factories/sc');
+    const query = converterGen(config.nodered.functionGlobalContext.factories.smEvents);
     expect(() => {query('', {'abba': 1})}).to.throw();
   });
 
   it('conveterGen/call converter on empty folder and call function with unknown arg - get undefined', async () => {
-    const query = converterGen('../../../factories/sc');
+    const query = converterGen(config.nodered.functionGlobalContext.factories.smEvents);
     expect(query('sdfsdf', {})).to.be.undefined;
   });
 
