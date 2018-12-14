@@ -13,8 +13,6 @@
 const mongoose = require('mongoose'),
   config = require('../config');
 
-require('mongoose-long')(mongoose);
-
 const Block = new mongoose.Schema({
   _id: {type: String},
   number: {type: Number, unique: true, index: true},
@@ -22,6 +20,8 @@ const Block = new mongoose.Schema({
   uncleAmount: {type: Number, required: true},
   totalTxFee: {type: String, required: true},
   miner: {type: String, required: true},
+  signers: {type: Array, default: [], index: true},
+  rewards: {type: Array, default: [], index: true},
   created: {type: Date, required: true, default: Date.now}
 }, {_id: false});
 
