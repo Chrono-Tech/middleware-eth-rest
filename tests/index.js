@@ -47,7 +47,7 @@ describe('core/ethRest', function () {
   describe('features', () => featuresTests(ctx));
 
   describe('fuzz', () => fuzzTests(ctx));
- // describe('performance', () => performanceTests(ctx));
+  describe('performance', () => performanceTests(ctx));
 
   after (async () => {
     mongoose.disconnect();

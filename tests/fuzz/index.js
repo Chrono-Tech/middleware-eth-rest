@@ -20,8 +20,10 @@ module.exports = (ctx) => {
     await models.txModel.remove();
     await models.blockModel.remove();
 
-    ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
-    await Promise.delay(10000);
+    const env = process.env;
+    env['LABORX_USE_AUTH'] = 1;
+    ctx.restPid = spawn('node', ['index.js'], {env: env, stdio: 'ignore'});
+    await Promise.delay(20000);
   });
 
    describe('auth', () => authTests(ctx));
@@ -30,7 +32,9 @@ module.exports = (ctx) => {
 
   it('kill rest server and up already - work GET /tx/:hash', async () => {
     await killProcess(ctx.restPid);
-    ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
+    const env = process.env;
+    env['LABORX_USE_AUTH'] = 1;
+    ctx.restPid = spawn('node', ['index.js'], {env: env, stdio: 'ignore'});
     await Promise.delay(10000);
 
     const hash = 'TESTHASH2';
