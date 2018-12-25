@@ -11,7 +11,7 @@ const addressTests = require('./address'),
 module.exports = (ctx) => {
   before(async () => {
     ctx.restPid = spawn('node', ['index.js'], {env: process.env, stdio: 'ignore'});
-    await Promise.delay(15000);
+    await Promise.delay(20000);
   });
 
   describe('tx endpoints', () => txTests(ctx));
